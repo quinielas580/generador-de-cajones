@@ -1,0 +1,2999 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AUDIO-TECH v7 — Parte 1: Cajón</title>
+<style>
+  :root {
+    --accent: #00f2ff;
+    --accent2: #ff9500;
+    --bg: #030a12;
+    --panel: #0a1628;
+    --panel2: #0f1e35;
+    --border: #1a3050;
+    --text: #c8dff0;
+    --text2: #6a8faa;
+    --danger: #ff4040;
+    --ok: #22c55e;
+    --wood1: #8B5E3C;
+    --wood2: #5C3B1E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: var(--panel);
+    border-bottom: 2px solid var(--accent);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-title { color: var(--accent); font-size: 1rem; font-weight: 900; letter-spacing: 2px; }
+  .header-sub { color: var(--text2); font-size: 0.7rem; letter-spacing: 1px; margin-top: 2px; }
+  .step-pills { display: flex; gap: 6px; }
+  .step-pill {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 900;
+    border: 2px solid var(--border);
+    color: var(--text2);
+  }
+  .step-pill.active { border-color: var(--accent); color: var(--accent); background: rgba(0,242,255,0.1); }
+  .step-pill.done { border-color: var(--ok); color: var(--ok); background: rgba(34,197,94,0.1); }
+
+  /* ===== MAIN CONTENT ===== */
+  .main { flex: 1; padding: 16px; max-width: 600px; margin: 0 auto; width: 100%; padding-bottom: 100px; }
+
+  /* ===== SECCIÓN ===== */
+  .section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    background: var(--panel2);
+    user-select: none;
+  }
+  .section-header:active { opacity: 0.8; }
+  .section-title { font-size: 0.85rem; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+  .section-icon { color: var(--text2); font-size: 0.8rem; transition: transform 0.3s; }
+  .section-icon.open { transform: rotate(180deg); }
+  .section-body { padding: 16px; display: none; }
+  .section-body.open { display: block; }
+
+  /* ===== INPUTS ===== */
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+  .field label span { color: var(--accent); font-weight: 700; }
+  input[type=number], input[type=text], select {
+    width: 100%;
+    background: #060f1a;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(0,242,255,0.15);
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  /* ===== CARAS PERSONALIZADAS ===== */
+  .face-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .face-card {
+    background: #060f1a;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+  }
+  .face-card.linked { border-color: rgba(0,242,255,0.3); }
+  .face-card-title {
+    font-size: 0.65rem;
+    color: var(--accent2);
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .face-card-title .icon { font-size: 0.9rem; }
+  .face-card input[type=number] {
+    background: var(--panel);
+    padding: 8px 10px;
+    font-size: 0.9rem;
+  }
+  .face-card label { font-size: 0.6rem; color: var(--text2); margin-bottom: 4px; display: block; }
+  .link-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 0.55rem;
+    background: rgba(0,242,255,0.15);
+    color: var(--accent);
+    padding: 2px 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .link-badge.active { background: rgba(0,242,255,0.3); }
+
+  /* ===== MODO AVANZADO TOGGLE ===== */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #060f1a;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  .toggle-label { font-size: 0.75rem; color: var(--text); }
+  .toggle-sub { font-size: 0.6rem; color: var(--text2); }
+  .toggle-switch {
+    width: 40px; height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    transition: background 0.3s;
+  }
+  .toggle-switch.on { background: var(--accent); }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: left 0.3s;
+  }
+  .toggle-switch.on::after { left: 21px; }
+
+  /* ===== VISTA PREVIA ISOMÉTRICA ===== */
+  .preview-box {
+    background: #040c18;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .preview-title { font-size: 0.65rem; color: var(--text2); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
+  .iso-canvas { width: 100%; max-width: 340px; height: 220px; }
+
+  /* ===== INFO CHIPS ===== */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.7rem;
+  }
+  .chip span { color: var(--accent); font-weight: 700; }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+  }
+  .btn {
+    flex: 1;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 900;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 1px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary { background: var(--accent); color: #030a12; }
+  .btn-secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+  .btn:active { opacity: 0.8; transform: scale(0.98); }
+
+  /* ===== ALERT ===== */
+  .alert {
+    background: rgba(255,64,64,0.1);
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    color: #ff8080;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .alert.show { display: block; }
+
+  /* ===== ESPESOR RAPIDO ===== */
+  .thick-opts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .thick-opt {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 0.75rem;
+    cursor: pointer;
+    color: var(--text2);
+    background: #060f1a;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .thick-opt.sel { border-color: var(--accent); color: var(--accent); background: rgba(0,242,255,0.1); }
+
+  /* ===== UNIDADES ===== */
+  .unit-sel {
+    display: flex;
+    gap: 0;
+    background: #060f1a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .unit-btn {
+    flex: 1;
+    padding: 9px;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--text2);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .unit-btn.sel { background: var(--accent); color: #030a12; }
+
+  /* ===== SEPARADOR ===== */
+  .sep { height: 1px; background: var(--border); margin: 14px 0; }
+
+  .hint { font-size: 0.6rem; color: var(--text2); margin-top: 5px; line-height: 1.4; }
+  .tag-new {
+    display: inline-block;
+    background: var(--accent2);
+    color: #000;
+    font-size: 0.5rem;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">🔊 AUDIO-TECH v7</div>
+    <div class="header-sub">DISEÑADOR DE CAJÓN</div>
+  </div>
+  <div class="step-pills">
+    <div class="step-pill active">1</div>
+    <div class="step-pill">2</div>
+    <div class="step-pill">3</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ALERT GLOBAL -->
+  <div class="alert" id="alertGlobal"></div>
+
+  <!-- UNIDADES -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection('sec-unidad')">
+      <div class="section-title">📏 UNIDADES</div>
+      <div class="section-icon open" id="icon-sec-unidad">▼</div>
+    </div>
+    <div class="section-body open" id="sec-unidad">
+      <div class="unit-sel">
+        <div class="unit-btn sel" id="unit-cm" onclick="setUnit('cm')">CENTÍMETROS (cm)</div>
+        <div class="unit-btn" id="unit-in" onclick="setUnit('in')">PULGADAS (in)</div>
+      </div>
+      <p class="hint">Todas las medidas se ingresan en la unidad seleccionada. Los planos siempre se generan en cm.</p>
+    </div>
+  </div>
+
+  <!-- MODO DE DISEÑO -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection('sec-modo')">
+      <div class="section-title">⚙️ MODO DE DISEÑO</div>
+      <div class="section-icon open" id="icon-sec-modo">▼</div>
+    </div>
+    <div class="section-body open" id="sec-modo">
+      <div class="toggle-row" onclick="toggleModo()">
+        <div>
+          <div class="toggle-label">Modo avanzado por cara <span class="tag-new">NUEVO</span></div>
+          <div class="toggle-sub">Ajusta cada cara individualmente (romboide, trapezoidal, etc.)</div>
+        </div>
+        <div class="toggle-switch" id="modoSwitch"></div>
+      </div>
+      <p class="hint">En modo estándar defines Largo × Alto × Ancho y el sistema aplica el mismo espesor a todas las caras. En modo avanzado puedes ajustar cada dimensión de forma independiente.</p>
+    </div>
+  </div>
+
+  <!-- MEDIDAS ESTÁNDAR -->
+  <div class="section" id="sec-estandar-wrap">
+    <div class="section-header" onclick="toggleSection('sec-estandar')">
+      <div class="section-title">📦 MEDIDAS DEL CAJÓN</div>
+      <div class="section-icon open" id="icon-sec-estandar">▼</div>
+    </div>
+    <div class="section-body open" id="sec-estandar">
+      <div class="grid3">
+        <div class="field">
+          <label>Largo <span>(X)</span></label>
+          <input type="number" id="extW" value="80" oninput="syncStd('W'); updateAll()">
+        </div>
+        <div class="field">
+          <label>Alto <span>(Y)</span></label>
+          <input type="number" id="extH" value="45" oninput="syncStd('H'); updateAll()">
+        </div>
+        <div class="field">
+          <label>Ancho <span>(Z)</span></label>
+          <input type="number" id="extD" value="45" oninput="syncStd('D'); updateAll()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Espesor de madera</label>
+        <input type="number" id="thick" value="1.8" step="0.1" oninput="syncThick(); updateAll()">
+        <div class="thick-opts">
+          <div class="thick-opt" onclick="setThick(1.2)">12 mm</div>
+          <div class="thick-opt sel" onclick="setThick(1.8)">18 mm</div>
+          <div class="thick-opt" onclick="setThick(2.2)">22 mm</div>
+          <div class="thick-opt" onclick="setThick(2.5)">25 mm</div>
+          <div class="thick-opt" onclick="setThick(3.0)">30 mm</div>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="field">
+        <label>Tipo de madera / material</label>
+        <select id="tipoMadera" onchange="updateAll()">
+          <option value="mdf">MDF</option>
+          <option value="triplay">Triplay</option>
+          <option value="pino">Madera de pino</option>
+          <option value="cedro">Cedro</option>
+          <option value="melamina">Melamina</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEDIDAS AVANZADAS POR CARA -->
+  <div class="section" id="sec-avanzado-wrap" style="display:none">
+    <div class="section-header" onclick="toggleSection('sec-avanzado')">
+      <div class="section-title">🔧 MEDIDAS POR CARA <span class="tag-new">AVANZADO</span></div>
+      <div class="section-icon open" id="icon-sec-avanzado">▼</div>
+    </div>
+    <div class="section-body open" id="sec-avanzado">
+      <p class="hint" style="margin-bottom:12px">Cada cara puede tener dimensiones independientes. Usa esto para formas romboides, trapezoidales o asimétricas. 🔗 = sincronizada con su cara opuesta.</p>
+      <div class="face-grid" id="faceGrid">
+        <!-- Se genera dinámicamente -->
+      </div>
+      <div class="sep"></div>
+      <div class="field">
+        <label>Espesor de madera (aplica a todas)</label>
+        <input type="number" id="thick2" value="1.8" step="0.1" oninput="syncThick2(); updateAll()">
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA PREVIA -->
+  <div class="preview-box">
+    <div class="preview-title">Vista previa del cajón</div>
+    <canvas class="iso-canvas" id="isoCanvas"></canvas>
+    <div class="chips" id="chipsInfo">
+      <div class="chip">Volumen bruto: <span id="chipVol">--</span></div>
+      <div class="chip">Interior: <span id="chipInt">--</span></div>
+      <div class="chip">Vol. neto: <span id="chipNeto">--</span></div>
+    </div>
+  </div>
+
+  <!-- NOMBRE DEL PROYECTO -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection('sec-proyecto')">
+      <div class="section-title">💾 PROYECTO</div>
+      <div class="section-icon" id="icon-sec-proyecto">▼</div>
+    </div>
+    <div class="section-body" id="sec-proyecto">
+      <div class="field">
+        <label>Nombre del proyecto</label>
+        <input type="text" id="projectName" placeholder="Ej: Cajón 12 pulgadas doble" oninput="saveState()">
+      </div>
+      <p class="hint">Tu progreso se guarda automáticamente en este dispositivo. Puedes regresar en cualquier momento y continuar donde lo dejaste.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="btn btn-secondary" onclick="resetAll()">↺ NUEVO</button>
+  <button class="btn btn-primary" onclick="goNext()">SIGUIENTE → PARTE 2</button>
+</div>
+
+<script>
+// ============================================================
+//  ESTADO GLOBAL
+// ============================================================
+let unit = 'cm';
+let modoAvanzado = false;
+
+const FACES = [
+  { id: 'front',  label: 'FRENTE',   icon: '⬜', dim: ['ancho','alto'],   opp: 'back'   },
+  { id: 'back',   label: 'TRASERA',  icon: '⬜', dim: ['ancho','alto'],   opp: 'front'  },
+  { id: 'left',   label: 'LAT. IZQ', icon: '◧',  dim: ['prof','alto'],   opp: 'right'  },
+  { id: 'right',  label: 'LAT. DER', icon: '◨',  dim: ['prof','alto'],   opp: 'left'   },
+  { id: 'top',    label: 'TAPA',     icon: '⬆',  dim: ['ancho','prof'],  opp: 'bottom' },
+  { id: 'bottom', label: 'FONDO',    icon: '⬇',  dim: ['ancho','prof'],  opp: 'top'    },
+];
+
+let faceData = {};
+FACES.forEach(f => {
+  faceData[f.id] = { w: 80, h: 45, linked: true };
+});
+// Valores por defecto correctos
+faceData.front  = { w: 80, h: 45, linked: true };
+faceData.back   = { w: 80, h: 45, linked: true };
+faceData.left   = { w: 45, h: 45, linked: true };
+faceData.right  = { w: 45, h: 45, linked: true };
+faceData.top    = { w: 80, h: 45, linked: true };
+faceData.bottom = { w: 80, h: 45, linked: true };
+
+// ============================================================
+//  UNIDADES
+// ============================================================
+function setUnit(u) {
+  unit = u;
+  document.getElementById('unit-cm').classList.toggle('sel', u === 'cm');
+  document.getElementById('unit-in').classList.toggle('sel', u === 'in');
+  saveState();
+}
+
+// ============================================================
+//  MODO AVANZADO
+// ============================================================
+function toggleModo() {
+  modoAvanzado = !modoAvanzado;
+  document.getElementById('modoSwitch').classList.toggle('on', modoAvanzado);
+  document.getElementById('sec-estandar-wrap').style.display = modoAvanzado ? 'none' : 'block';
+  document.getElementById('sec-avanzado-wrap').style.display = modoAvanzado ? 'block' : 'none';
+  if (modoAvanzado) renderFaceGrid();
+  updateAll();
+}
+
+function renderFaceGrid() {
+  const grid = document.getElementById('faceGrid');
+  const W = +v('extW'), H = +v('extH'), D = +v('extD'), T = +v('thick');
+  // Sync faceData desde modo estándar
+  faceData.front  = { w: W, h: H, linked: faceData.front.linked };
+  faceData.back   = { w: W, h: H, linked: faceData.back.linked };
+  faceData.left   = { w: D, h: H, linked: faceData.left.linked };
+  faceData.right  = { w: D, h: H, linked: faceData.right.linked };
+  faceData.top    = { w: W, h: D, linked: faceData.top.linked };
+  faceData.bottom = { w: W, h: D, linked: faceData.bottom.linked };
+
+  grid.innerHTML = FACES.map(f => {
+    const fd = faceData[f.id];
+    return `
+    <div class="face-card ${fd.linked ? 'linked' : ''}" id="fc_${f.id}">
+      <div class="face-card-title"><span class="icon">${f.icon}</span>${f.label}</div>
+      <div class="link-badge ${fd.linked ? 'active' : ''}" id="lb_${f.id}" onclick="toggleLink('${f.id}')">
+        ${fd.linked ? '🔗 LINKED' : '✂ LIBRE'}
+      </div>
+      <label>Ancho / Base (cm)</label>
+      <input type="number" value="${fd.w}" oninput="setFace('${f.id}','w',+this.value)">
+      <label>Alto / Profundidad (cm)</label>
+      <input type="number" value="${fd.h}" oninput="setFace('${f.id}','h',+this.value)">
+    </div>`;
+  }).join('');
+}
+
+function toggleLink(faceId) {
+  faceData[faceId].linked = !faceData[faceId].linked;
+  const opp = FACES.find(f => f.id === faceId).opp;
+  if (opp) faceData[opp].linked = faceData[faceId].linked;
+  renderFaceGrid();
+  updateAll();
+}
+
+function setFace(faceId, dim, val) {
+  faceData[faceId][dim] = val;
+  const face = FACES.find(f => f.id === faceId);
+  if (faceData[faceId].linked && face.opp) {
+    faceData[face.opp][dim] = val;
+  }
+  // No re-render completo para no perder foco, solo actualizar cara opuesta si linked
+  if (faceData[faceId].linked && face.opp) {
+    const oppInputs = document.querySelectorAll(`#fc_${face.opp} input`);
+    if (dim === 'w' && oppInputs[0]) oppInputs[0].value = val;
+    if (dim === 'h' && oppInputs[1]) oppInputs[1].value = val;
+  }
+  updateAll();
+}
+
+// ============================================================
+//  SYNC ESTÁNDAR ↔ AVANZADO
+// ============================================================
+function syncStd(axis) {
+  const W = +v('extW'), H = +v('extH'), D = +v('extD');
+  if (axis === 'W') {
+    faceData.front.w = W; faceData.back.w = W;
+    faceData.top.w = W;   faceData.bottom.w = W;
+  }
+  if (axis === 'H') {
+    faceData.front.h = H; faceData.back.h = H;
+    faceData.left.h = H;  faceData.right.h = H;
+  }
+  if (axis === 'D') {
+    faceData.left.w = D;  faceData.right.w = D;
+    faceData.top.h = D;   faceData.bottom.h = D;
+  }
+}
+
+function syncThick() {
+  document.getElementById('thick2').value = v('thick');
+  highlightThickOpt(+v('thick'));
+}
+function syncThick2() {
+  document.getElementById('thick').value = v('thick2');
+  highlightThickOpt(+v('thick2'));
+}
+
+function setThick(val) {
+  document.getElementById('thick').value = val;
+  document.getElementById('thick2').value = val;
+  highlightThickOpt(val);
+  updateAll();
+}
+
+function highlightThickOpt(val) {
+  document.querySelectorAll('.thick-opt').forEach(el => {
+    el.classList.toggle('sel', Math.abs(parseFloat(el.textContent) / 10 - val) < 0.01);
+  });
+}
+
+// ============================================================
+//  DIMENSIONES ACTUALES
+// ============================================================
+function getDims() {
+  // Retorna dimensiones en cm siempre
+  let W, H, D, T;
+  if (modoAvanzado) {
+    // Usa promedio de frente/trasera para vol
+    W = (faceData.front.w + faceData.back.w) / 2;
+    H = (faceData.front.h + faceData.back.h) / 2;
+    D = (faceData.left.w + faceData.right.w) / 2;
+    T = +v('thick2');
+  } else {
+    W = +v('extW'); H = +v('extH'); D = +v('extD'); T = +v('thick');
+  }
+  // Conversión si está en pulgadas
+  const f = (unit === 'in') ? 2.54 : 1;
+  return { W: W*f, H: H*f, D: D*f, T: T*f };
+}
+
+// ============================================================
+//  DIBUJO ISOMÉTRICO
+// ============================================================
+function drawISO() {
+  const canvas = document.getElementById('isoCanvas');
+  const ctx = canvas.getContext('2d');
+  const CW = canvas.offsetWidth || 340;
+  const CH = canvas.offsetHeight || 220;
+  canvas.width = CW * 2; canvas.height = CH * 2;
+  ctx.scale(2, 2);
+  ctx.clearRect(0, 0, CW, CH);
+
+  const { W, H, D } = getDims();
+  // Escala para que quepa
+  const maxDim = Math.max(W, H, D);
+  const sc = Math.min(CW, CH) / (maxDim * 2.2);
+  const isoX = W * sc, isoY = H * sc, isoZ = D * sc;
+  // Offsets isométricos
+  const ox = 0.7, oy = 0.4; // angulos iso
+  const cx = CW / 2, cy = CH * 0.55;
+
+  // Proyección isométrica
+  const project = (x, y, z) => ({
+    px: cx + (x - z) * ox * sc,
+    py: cy + (x + z) * oy * sc - y * sc
+  });
+
+  const corners = {
+    A: project(0,   0,   0),
+    B: project(W,   0,   0),
+    C: project(W,   0,   D),
+    D: project(0,   0,   D),
+    E: project(0,   H,   0),
+    F: project(W,   H,   0),
+    G: project(W,   H,   D),
+    Hc:project(0,   H,   D),
+  };
+
+  // Sombra / base
+  ctx.beginPath();
+  ctx.moveTo(corners.A.px, corners.A.py+4);
+  ctx.lineTo(corners.B.px, corners.B.py+4);
+  ctx.lineTo(corners.C.px, corners.C.py+4);
+  ctx.lineTo(corners.D.px, corners.D.py+4);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,242,255,0.04)';
+  ctx.fill();
+
+  // Cara izquierda (face left)
+  const faceLeft = [corners.A, corners.D, corners.Hc, corners.E];
+  drawFace(ctx, faceLeft, 'rgba(0,242,255,0.08)', '#1a4060');
+
+  // Cara delantera (face front)
+  const faceFront = [corners.D, corners.C, corners.G, corners.Hc];
+  drawFace(ctx, faceFront, 'rgba(0,242,255,0.13)', '#1a4060');
+
+  // Cara superior (face top)
+  const faceTop = [corners.E, corners.F, corners.G, corners.Hc];
+  drawFace(ctx, faceTop, 'rgba(0,242,255,0.18)', '#204870');
+
+  // Bordes
+  const edges = [
+    [corners.A, corners.B], [corners.B, corners.C], [corners.C, corners.D], [corners.D, corners.A],
+    [corners.E, corners.F], [corners.F, corners.G], [corners.G, corners.Hc], [corners.Hc, corners.E],
+    [corners.A, corners.E], [corners.B, corners.F], [corners.C, corners.G], [corners.D, corners.Hc],
+  ];
+  ctx.strokeStyle = '#00f2ff';
+  ctx.lineWidth = 1.2;
+  edges.forEach(([a,b]) => {
+    ctx.beginPath(); ctx.moveTo(a.px, a.py); ctx.lineTo(b.px, b.py); ctx.stroke();
+  });
+
+  // Dimensiones
+  ctx.fillStyle = '#6a8faa';
+  ctx.font = '9px Segoe UI';
+  ctx.textAlign = 'center';
+  // Largo (X)
+  const midAB = midpoint(corners.A, corners.B);
+  ctx.fillText(`${W.toFixed(1)} cm`, midAB.px, midAB.py + 14);
+  // Alto (Y)
+  const midAE = midpoint(corners.A, corners.E);
+  ctx.fillText(`${H.toFixed(1)} cm`, midAE.px - 18, midAE.py);
+  // Profundidad
+  const midDC = midpoint(corners.D, corners.C);
+  ctx.fillText(`${D.toFixed(1)} cm`, midDC.px + 14, midDC.py + 10);
+}
+
+function drawFace(ctx, pts, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0].px, pts[0].py);
+  pts.forEach(p => ctx.lineTo(p.px, p.py));
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = 0.5;
+  ctx.stroke();
+}
+function midpoint(a, b) { return { px: (a.px + b.px)/2, py: (a.py + b.py)/2 }; }
+
+// ============================================================
+//  CÁLCULOS DE VOLUMEN
+// ============================================================
+function calcVols() {
+  const { W, H, D, T } = getDims();
+  const vBruto = (W * H * D) / 1000;
+  const Wi = W - 2*T, Hi = H - 2*T, Di = D - 2*T;
+  const vInterior = (Wi > 0 && Hi > 0 && Di > 0) ? (Wi * Hi * Di) / 1000 : 0;
+  return { vBruto, vInterior, W, H, D, T, Wi, Hi, Di };
+}
+
+// ============================================================
+//  UPDATE ALL
+// ============================================================
+function updateAll() {
+  const v = calcVols();
+  document.getElementById('chipVol').textContent  = v.vBruto.toFixed(2) + ' L';
+  document.getElementById('chipInt').textContent  = (v.Wi > 0 ? `${v.Wi.toFixed(1)}×${v.Hi.toFixed(1)}×${v.Di.toFixed(1)} cm` : 'Error');
+  document.getElementById('chipNeto').textContent = v.vInterior.toFixed(2) + ' L';
+
+  // Validación mínima
+  const alertEl = document.getElementById('alertGlobal');
+  if (v.Wi <= 0 || v.Hi <= 0 || v.Di <= 0) {
+    alertEl.textContent = '⚠ El espesor de madera es mayor que las dimensiones del cajón. Revisa las medidas.';
+    alertEl.classList.add('show');
+  } else {
+    alertEl.classList.remove('show');
+  }
+
+  drawISO();
+  saveState();
+}
+
+// ============================================================
+//  SECCIONES COLAPSABLES
+// ============================================================
+function toggleSection(id) {
+  const body = document.getElementById(id);
+  const icon = document.getElementById('icon-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (icon) icon.classList.toggle('open', !isOpen);
+}
+
+// ============================================================
+//  HELPER
+// ============================================================
+function v(id) { return document.getElementById(id).value; }
+
+// ============================================================
+//  GUARDAR / CARGAR ESTADO
+// ============================================================
+function saveState() {
+  const state = {
+    unit,
+    modoAvanzado,
+    extW: v('extW'), extH: v('extH'), extD: v('extD'), thick: v('thick'),
+    tipoMadera: v('tipoMadera'),
+    projectName: v('projectName'),
+    faceData,
+  };
+  localStorage.setItem('at7_part1', JSON.stringify(state));
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('at7_part1');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    unit = s.unit || 'cm';
+    setUnit(unit);
+    if (s.extW) document.getElementById('extW').value = s.extW;
+    if (s.extH) document.getElementById('extH').value = s.extH;
+    if (s.extD) document.getElementById('extD').value = s.extD;
+    if (s.thick) { document.getElementById('thick').value = s.thick; document.getElementById('thick2').value = s.thick; }
+    if (s.tipoMadera) document.getElementById('tipoMadera').value = s.tipoMadera;
+    if (s.projectName) document.getElementById('projectName').value = s.projectName;
+    if (s.faceData) faceData = s.faceData;
+    if (s.modoAvanzado) { modoAvanzado = false; toggleModo(); }
+    highlightThickOpt(+v('thick'));
+  } catch(e) {}
+}
+
+// ============================================================
+//  RESET
+// ============================================================
+function resetAll() {
+  if (!confirm('¿Deseas iniciar un nuevo proyecto? Se perderán los datos actuales.')) return;
+  localStorage.removeItem('at7_part1');
+  localStorage.removeItem('at7_part2');
+  localStorage.removeItem('at7_part3');
+  location.reload();
+}
+
+// ============================================================
+//  NAVEGACIÓN
+// ============================================================
+function goNext() {
+  saveState();
+  const v2 = calcVols();
+  if (v2.Wi <= 0 || v2.Hi <= 0 || v2.Di <= 0) {
+    alert('Corrige las medidas antes de continuar. El espesor de madera es demasiado grande para las dimensiones del cajón.');
+    return;
+  }
+  // Redirigir a parte2.html
+  window.location.href = 'parte2.html';
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('load', () => {
+  loadState();
+  updateAll();
+});
+
+window.addEventListener('resize', () => {
+  drawISO();
+});
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AUDIO-TECH v7 — Parte 2: Componentes</title>
+<style>
+:root {
+  --accent: #00f2ff; --accent2: #ff9500; --bg: #030a12;
+  --panel: #0a1628; --panel2: #0f1e35; --border: #1a3050;
+  --text: #c8dff0; --text2: #6a8faa;
+  --danger: #ff4040; --ok: #22c55e; --warn: #ffcc00;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+/* HEADER */
+.header { background: var(--panel); border-bottom: 2px solid var(--accent); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 200; }
+.header-title { color: var(--accent); font-size: 1rem; font-weight: 900; letter-spacing: 2px; }
+.header-sub { color: var(--text2); font-size: 0.7rem; letter-spacing: 1px; margin-top: 2px; }
+.step-pills { display: flex; gap: 6px; }
+.step-pill { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 900; border: 2px solid var(--border); color: var(--text2); }
+.step-pill.active { border-color: var(--accent); color: var(--accent); background: rgba(0,242,255,0.1); }
+.step-pill.done { border-color: var(--ok); color: var(--ok); background: rgba(34,197,94,0.1); }
+
+/* LAYOUT */
+.layout { display: flex; flex-direction: column; flex: 1; }
+@media (min-width: 900px) { .layout { flex-direction: row; } }
+
+/* PANEL IZQUIERDO (controles) */
+.controls { background: var(--panel); width: 100%; padding: 14px; overflow-y: auto; padding-bottom: 100px; }
+@media (min-width: 900px) { .controls { width: 380px; min-width: 340px; height: calc(100vh - 58px); position: sticky; top: 58px; padding-bottom: 20px; } }
+
+/* VISOR 3D */
+.viewer-wrap { flex: 1; background: #030e1a; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 340px; padding: 0; position: relative; }
+@media (min-width: 900px) { .viewer-wrap { min-height: calc(100vh - 58px); position: sticky; top: 58px; height: calc(100vh - 58px); overflow: hidden; } }
+#viewer3d { width: 100%; touch-action: none; cursor: grab; display: block; }
+#viewer3d:active { cursor: grabbing; }
+
+/* HUD BADGES */
+.hud { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 8px; z-index: 10; pointer-events: none; }
+.badge { background: rgba(3,10,18,0.88); padding: 8px 12px; border-radius: 8px; border-left: 4px solid var(--accent); min-width: 110px; }
+.badge.warn { border-left-color: var(--danger); }
+.badge label { font-size: 0.55rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; display: block; }
+.badge span { display: block; font-size: 1.15rem; font-weight: 900; color: var(--accent); line-height: 1.2; }
+.badge.warn span { color: var(--danger); }
+
+/* CONTROLES VISOR */
+.viewer-controls { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 10; }
+.vcbtn { background: rgba(10,22,40,0.9); border: 1px solid var(--border); color: var(--text2); padding: 7px 12px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.vcbtn:active { background: var(--accent); color: #000; }
+
+/* SECTIONS */
+.section { background: var(--panel2); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+.section-header { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: var(--panel); user-select: none; -webkit-tap-highlight-color: transparent; }
+.section-title { font-size: 0.82rem; font-weight: 700; color: var(--accent); letter-spacing: 1px; }
+.chevron { color: var(--text2); font-size: 0.8rem; transition: transform 0.3s; }
+.chevron.open { transform: rotate(180deg); }
+.section-body { padding: 14px; display: none; }
+.section-body.open { display: block; }
+
+/* ALERTS */
+.alert { border-radius: 8px; padding: 10px 14px; font-size: 0.75rem; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+.alert-danger { background: rgba(255,64,64,0.12); border: 1px solid var(--danger); color: #ff8080; }
+.alert-warn { background: rgba(255,204,0,0.1); border: 1px solid var(--warn); color: #ffdd55; }
+.alert-ok { background: rgba(34,197,94,0.1); border: 1px solid var(--ok); color: #6ee7a0; }
+.alert-icon { font-size: 1rem; flex-shrink: 0; }
+
+/* INPUTS */
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 0.62rem; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.field label b { color: var(--accent); }
+input[type=number], input[type=text], select { width: 100%; background: #060f1a; border: 1px solid var(--border); color: var(--accent); padding: 9px 11px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; -webkit-appearance: none; }
+input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0,242,255,0.15); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.hint { font-size: 0.6rem; color: var(--text2); line-height: 1.4; margin-top: 4px; }
+.sep { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ITEM CARDS */
+.item-card { background: #060f1a; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; position: relative; }
+.item-card.invalid { border-color: var(--danger); background: rgba(255,64,64,0.05); }
+.item-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.item-badge { font-size: 0.65rem; font-weight: 900; color: #000; padding: 3px 8px; border-radius: 5px; letter-spacing: 1px; }
+.item-badge.woofer { background: var(--accent); }
+.item-badge.port-maze { background: var(--warn); }
+.item-badge.port-tube { background: var(--accent2); }
+.btn-del { background: rgba(255,64,64,0.15); color: var(--danger); border: 1px solid var(--danger); border-radius: 6px; padding: 4px 10px; font-size: 0.65rem; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.btn-del:active { background: var(--danger); color: #fff; }
+
+/* BUTTONS */
+.btn-add { width: 100%; padding: 11px; background: transparent; border: 1px dashed var(--border); color: var(--text2); border-radius: 10px; font-size: 0.8rem; cursor: pointer; margin-bottom: 10px; -webkit-tap-highlight-color: transparent; }
+.btn-add:active { border-color: var(--accent); color: var(--accent); }
+
+/* TOGGLE SWITCH */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #060f1a; border-radius: 8px; margin-bottom: 12px; cursor: pointer; border: 1px solid var(--border); -webkit-tap-highlight-color: transparent; }
+.toggle-label { font-size: 0.75rem; color: var(--text); }
+.toggle-sub { font-size: 0.6rem; color: var(--text2); }
+.toggle-switch { width: 40px; height: 22px; background: var(--border); border-radius: 11px; position: relative; transition: background 0.3s; flex-shrink: 0; }
+.toggle-switch.on { background: var(--accent); }
+.toggle-switch::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: left 0.3s; }
+.toggle-switch.on::after { left: 21px; }
+
+/* BOTTOM NAV */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); border-top: 1px solid var(--border); padding: 10px 16px; display: flex; gap: 10px; z-index: 300; }
+.btn { flex: 1; padding: 13px; border-radius: 10px; font-size: 0.82rem; font-weight: 900; border: none; cursor: pointer; letter-spacing: 1px; -webkit-tap-highlight-color: transparent; }
+.btn-primary { background: var(--accent); color: #030a12; }
+.btn-secondary { background: var(--panel2); color: var(--text); border: 1px solid var(--border); }
+.btn:active { opacity: 0.8; transform: scale(0.98); }
+
+/* MODAL ACÚSTICO */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 500; display: none; align-items: flex-end; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--panel); border: 1px solid var(--border); border-radius: 18px 18px 0 0; padding: 20px; width: 100%; max-width: 600px; max-height: 85vh; overflow-y: auto; padding-bottom: 30px; }
+@media (min-width: 600px) { .modal-overlay { align-items: center; } .modal { border-radius: 16px; max-height: 80vh; } }
+.modal-title { font-size: 1rem; font-weight: 900; color: var(--accent); margin-bottom: 4px; }
+.modal-sub { font-size: 0.7rem; color: var(--text2); margin-bottom: 16px; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.modal-item { background: #060f1a; border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.modal-item.sel { border-color: var(--accent); background: rgba(0,242,255,0.08); }
+.modal-item-title { font-size: 0.75rem; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.modal-item-sub { font-size: 0.6rem; color: var(--text2); line-height: 1.4; }
+.modal-item.sel .modal-item-title { color: var(--accent); }
+.modal-check { float: right; color: var(--accent); display: none; }
+.modal-item.sel .modal-check { display: inline; }
+.modal-input { background: #060f1a; border: 1px solid var(--border); color: var(--accent); padding: 9px 11px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; width: 100%; margin-top: 6px; -webkit-appearance: none; }
+.modal-input:focus { outline: none; border-color: var(--accent); }
+.btn-modal-save { width: 100%; padding: 13px; background: var(--ok); color: #fff; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 900; cursor: pointer; margin-top: 10px; }
+.tag-new { display: inline-block; background: var(--accent2); color: #000; font-size: 0.5rem; font-weight: 900; padding: 1px 5px; border-radius: 3px; margin-left: 5px; vertical-align: middle; }
+
+/* Indicador de validez del port en L */
+.port-l-info { font-size: 0.65rem; padding: 6px 10px; border-radius: 6px; margin-top: 6px; display: none; }
+.port-l-info.show { display: block; }
+.port-l-info.ok { background: rgba(34,197,94,0.1); color: #6ee7a0; border: 1px solid var(--ok); }
+.port-l-info.warn { background: rgba(255,204,0,0.1); color: #ffdd55; border: 1px solid var(--warn); }
+.port-l-info.err { background: rgba(255,64,64,0.12); color: #ff8080; border: 1px solid var(--danger); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-title">🔊 AUDIO-TECH v7</div>
+    <div class="header-sub">PASO 2 — COMPONENTES Y VISOR 3D</div>
+  </div>
+  <div class="step-pills">
+    <div class="step-pill done">✓</div>
+    <div class="step-pill active">2</div>
+    <div class="step-pill">3</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- PANEL CONTROLES -->
+  <div class="controls">
+
+    <!-- RESUMEN CAJÓN -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSec('box-summary')">
+        <div class="section-title">📦 CAJÓN CARGADO</div>
+        <div class="chevron open" id="ch-box-summary">▼</div>
+      </div>
+      <div class="section-body open" id="box-summary">
+        <div id="boxSummary" style="font-size:0.75rem; color:var(--text2); line-height:1.8;"></div>
+        <a href="parte1.html" style="font-size:0.7rem; color:var(--accent); text-decoration:none;">← Editar cajón</a>
+      </div>
+    </div>
+
+    <!-- ALERTAS GLOBALES -->
+    <div id="globalAlerts"></div>
+
+    <!-- WOOFERS -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSec('sec-woofer')">
+        <div class="section-title">🔊 WOOFERS</div>
+        <div class="chevron open" id="ch-sec-woofer">▼</div>
+      </div>
+      <div class="section-body open" id="sec-woofer">
+        <div id="wooferList"></div>
+        <button class="btn-add" onclick="addWoofer()">＋ AGREGAR WOOFER</button>
+      </div>
+    </div>
+
+    <!-- PORTS -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSec('sec-port')">
+        <div class="section-title">🌀 PORTS (SINTONÍA)</div>
+        <div class="chevron open" id="ch-sec-port">▼</div>
+      </div>
+      <div class="section-body open" id="sec-port">
+        <div id="portList"></div>
+        <button class="btn-add" onclick="addPort()">＋ AGREGAR PORT</button>
+      </div>
+    </div>
+
+    <!-- ACÚSTICA AVANZADA -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSec('sec-acustica')">
+        <div class="section-title">📊 ACÚSTICA AVANZADA <span class="tag-new">PRO</span></div>
+        <div class="chevron" id="ch-sec-acustica">▼</div>
+      </div>
+      <div class="section-body" id="sec-acustica">
+        <div class="toggle-row" onclick="toggleAcustica()">
+          <div>
+            <div class="toggle-label">Activar parámetros Thiele-Small</div>
+            <div class="toggle-sub">Agrega datos técnicos que afectan el rendimiento acústico</div>
+          </div>
+          <div class="toggle-switch" id="acusticaSwitch"></div>
+        </div>
+        <div id="btnOpenAcustica" style="display:none">
+          <button class="btn-add" style="border-color:var(--accent);color:var(--accent)" onclick="openModalAcustica()">
+            ✏️ EDITAR PARÁMETROS ACÚSTICOS
+          </button>
+          <div id="acusticaResumen" style="font-size:0.7rem; color:var(--text2); line-height:1.8; margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div class="section">
+      <div class="section-header" onclick="toggleSec('sec-result')">
+        <div class="section-title">📈 RESULTADOS</div>
+        <div class="chevron open" id="ch-sec-result">▼</div>
+      </div>
+      <div class="section-body open" id="sec-result">
+        <div id="resultados" style="font-size:0.78rem; line-height:2;"></div>
+      </div>
+    </div>
+
+  </div><!-- /controls -->
+
+  <!-- VISOR 3D -->
+  <div class="viewer-wrap">
+    <canvas id="viewer3d"></canvas>
+    <div class="hud">
+      <div class="badge" id="badgeVol"><label>VOL NETO</label><span id="hudVol">--</span></div>
+      <div class="badge" id="badgeHz"><label>SINTONÍA</label><span id="hudHz">--</span></div>
+    </div>
+    <div class="viewer-controls">
+      <div class="vcbtn" onclick="resetView()">↺ RESET</div>
+      <div class="vcbtn" onclick="setView(0,0)">FRENTE</div>
+      <div class="vcbtn" onclick="setView(-15,45)">ISO</div>
+      <div class="vcbtn" onclick="setView(-85,0)">ARRIBA</div>
+    </div>
+  </div>
+
+</div><!-- /layout -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="btn btn-secondary" onclick="goBack()">← VOLVER</button>
+  <button class="btn btn-primary" onclick="goNext()">GENERAR PLANOS →</button>
+</div>
+
+<!-- MODAL ACÚSTICA AVANZADA -->
+<div class="modal-overlay" id="modalAcustica">
+  <div class="modal">
+    <div class="modal-title">📊 Parámetros Acústicos</div>
+    <div class="modal-sub">Agrega los datos que tengas disponibles. Los que dejes vacíos no se usarán en el cálculo.</div>
+    <div class="modal-grid" id="acousticGrid"></div>
+    <button class="btn-modal-save" onclick="saveAcustica()">💾 GUARDAR Y CONTINUAR</button>
+    <button class="btn-modal-save" style="background:var(--panel2);color:var(--text);margin-top:8px;border:1px solid var(--border)" onclick="closeModalAcustica()">CANCELAR</button>
+  </div>
+</div>
+
+<script>
+// ================================================
+//  ESTADO GLOBAL
+// ================================================
+let rX = -15, rY = 35;
+let isDragging = false, lastX = 0, lastY = 0;
+let woofers = [], ports = [];
+let useAcustica = false;
+let acusticaData = {};
+let boxDims = { W:80, H:45, D:45, T:1.8, Wi:76.4, Hi:41.4, Di:41.4 };
+
+const ACOUSTIC_PARAMS = [
+  { key:'fs',   label:'Fs — Frec. Resonancia', unit:'Hz',   hint:'Frecuencia de resonancia libre del woofer' },
+  { key:'qts',  label:'Qts — Factor de calidad', unit:'',  hint:'Factor total (Qt). Influye en diseño sellado vs BR' },
+  { key:'qes',  label:'Qes — Factor eléctrico', unit:'',   hint:'Factor Q eléctrico' },
+  { key:'qms',  label:'Qms — Factor mecánico', unit:'',    hint:'Factor Q mecánico' },
+  { key:'vas',  label:'Vas — Vol. Equiv. Acústico', unit:'L', hint:'Volumen de aire equivalente a la suspensión' },
+  { key:'xmax', label:'Xmax — Excursión máx', unit:'mm',   hint:'Excursión pico del cono' },
+  { key:'sd',   label:'Sd — Área del cono', unit:'cm²',    hint:'Área efectiva del diafragma' },
+  { key:'bl',   label:'BL — Factor de fuerza', unit:'T·m', hint:'Producto de campo magnético × longitud bobina' },
+  { key:'re',   label:'Re — Resist. DC bobina', unit:'Ω',  hint:'Resistencia eléctrica en corriente directa' },
+  { key:'le',   label:'Le — Inductancia bobina', unit:'mH', hint:'Inductancia de la bobina de voz' },
+  { key:'spl',  label:'SPL — Sensibilidad', unit:'dB',     hint:'Sensibilidad a 1W/1m' },
+  { key:'power',label:'Potencia nominal', unit:'W',        hint:'Potencia RMS del woofer' },
+];
+
+const FACE_LABELS = {
+  front:'Frente', back:'Trasera', left:'Lat. Izq', right:'Lat. Der', top:'Tapa', bottom:'Fondo'
+};
+
+// ================================================
+//  INIT
+// ================================================
+window.addEventListener('load', () => {
+  loadState();
+  initCanvas();
+  renderAll();
+  drawAll();
+});
+
+// ================================================
+//  LOAD / SAVE
+// ================================================
+function loadState() {
+  try {
+    const p1 = JSON.parse(localStorage.getItem('at7_part1') || '{}');
+    if (p1.extW) {
+      const T = parseFloat(p1.thick || 1.8);
+      const W = parseFloat(p1.extW);
+      const H = parseFloat(p1.extH);
+      const D = parseFloat(p1.extD);
+      boxDims = { W, H, D, T, Wi: W-2*T, Hi: H-2*T, Di: D-2*T, tipo: p1.tipoMadera || 'MDF' };
+    }
+    const p2 = JSON.parse(localStorage.getItem('at7_part2') || '{}');
+    if (p2.woofers) woofers = p2.woofers;
+    if (p2.ports)   ports   = p2.ports;
+    if (p2.useAcustica !== undefined) useAcustica = p2.useAcustica;
+    if (p2.acusticaData) acusticaData = p2.acusticaData;
+    document.getElementById('acusticaSwitch').classList.toggle('on', useAcustica);
+    document.getElementById('btnOpenAcustica').style.display = useAcustica ? 'block' : 'none';
+    updateAcusticaResumen();
+  } catch(e) { console.warn(e); }
+}
+
+function saveState() {
+  localStorage.setItem('at7_part2', JSON.stringify({ woofers, ports, useAcustica, acusticaData }));
+}
+
+// ================================================
+//  TOGGLE SECTIONS
+// ================================================
+function toggleSec(id) {
+  const body = document.getElementById(id);
+  const ch   = document.getElementById('ch-'+id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (ch) ch.classList.toggle('open', !isOpen);
+}
+
+// ================================================
+//  HELPERS DIMENSIONES
+// ================================================
+function faceSize(face) {
+  const { W, H, D } = boxDims;
+  if (face === 'front' || face === 'back')   return { w: W, h: H };
+  if (face === 'left'  || face === 'right')  return { w: D, h: H };
+  if (face === 'top'   || face === 'bottom') return { w: W, h: D };
+  return { w: W, h: H };
+}
+
+function faceDepth(face) {
+  const { W, H, D } = boxDims;
+  if (face === 'front' || face === 'back')   return D;
+  if (face === 'left'  || face === 'right')  return W;
+  if (face === 'top'   || face === 'bottom') return H;
+  return D;
+}
+
+// ================================================
+//  WOOFERS
+// ================================================
+function addWoofer() {
+  woofers.push({ dia: 12, face: 'front', posH: 'center', posV: 'center' });
+  renderAll(); drawAll(); saveState();
+}
+
+function removeWoofer(i) {
+  woofers.splice(i, 1);
+  renderAll(); drawAll(); saveState();
+}
+
+function renderWoofers() {
+  const el = document.getElementById('wooferList');
+  if (!woofers.length) { el.innerHTML = '<p class="hint" style="margin-bottom:10px">Sin woofers configurados.</p>'; return; }
+  el.innerHTML = woofers.map((w, i) => {
+    const fs = faceSize(w.face);
+    const dCm = w.dia * 2.54;
+    const fits = dCm <= fs.w - 2*boxDims.T && dCm <= fs.h - 2*boxDims.T;
+    return `
+    <div class="item-card ${fits?'':'invalid'}" id="wc_${i}">
+      <div class="item-card-header">
+        <span class="item-badge woofer">🔊 WOOFER ${i+1}</span>
+        <button class="btn-del" onclick="removeWoofer(${i})">✕ Quitar</button>
+      </div>
+      ${!fits ? `<div class="alert alert-danger"><span class="alert-icon">⛔</span>El woofer no cabe en la cara seleccionada. Reduce el diámetro o cambia de cara.</div>` : ''}
+      <div class="field">
+        <label>Diámetro <b>(pulgadas)</b></label>
+        <select onchange="woofers[${i}].dia=+this.value;renderAll();drawAll();saveState()">
+          ${[6,8,10,12,15,18].map(d=>`<option value="${d}" ${w.dia==d?'selected':''}>${d}" (${(d*2.54).toFixed(1)} cm)</option>`).join('')}
+          <option value="custom" ${![6,8,10,12,15,18].includes(w.dia)?'selected':''}>Personalizado</option>
+        </select>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Cara de montaje</label>
+          <select onchange="woofers[${i}].face=this.value;renderAll();drawAll();saveState()">
+            ${Object.entries(FACE_LABELS).map(([k,v])=>`<option value="${k}" ${w.face===k?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>Pos. horizontal</label>
+          <select onchange="woofers[${i}].posH=this.value;renderAll();drawAll();saveState()">
+            <option value="left" ${w.posH==='left'?'selected':''}>Izquierda</option>
+            <option value="center" ${w.posH==='center'?'selected':''}>Centro</option>
+            <option value="right" ${w.posH==='right'?'selected':''}>Derecha</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Pos. vertical</label>
+        <select onchange="woofers[${i}].posV=this.value;renderAll();drawAll();saveState()">
+          <option value="top" ${w.posV==='top'?'selected':''}>Arriba</option>
+          <option value="center" ${w.posV==='center'?'selected':''}>Centro</option>
+          <option value="bottom" ${w.posV==='bottom'?'selected':''}>Abajo</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ================================================
+//  PORTS
+// ================================================
+function addPort() {
+  ports.push({ type:'maze', w:10, h:41, len:60, face:'front', posH:'center', dia:4 });
+  renderAll(); drawAll(); saveState();
+}
+
+function removePort(i) {
+  ports.splice(i,1);
+  renderAll(); drawAll(); saveState();
+}
+
+function renderPorts() {
+  const el = document.getElementById('portList');
+  if (!ports.length) { el.innerHTML = '<p class="hint" style="margin-bottom:10px">Sin ports configurados.</p>'; return; }
+
+  el.innerHTML = ports.map((p, i) => {
+    const fs = faceSize(p.face);
+    const fd = faceDepth(p.face);
+    const { T } = boxDims;
+    const internalDepth = fd - 2*T;
+
+    let fits = true, portW = 0, portH = 0, lInfo = '', lClass = '';
+    let needsL = false, lBranchLen = 0;
+
+    if (p.type === 'maze') {
+      portW = p.w; portH = p.h;
+      fits = portW <= fs.w - 2*T && portH <= fs.h - 2*T;
+      const l1 = Math.min(p.len, internalDepth);
+      lBranchLen = Math.max(0, p.len - l1);
+      needsL = lBranchLen > 0;
+      if (!needsL) { lClass='ok'; lInfo=`✅ Port recto: entra completo (${p.len} cm ≤ ${internalDepth.toFixed(1)} cm interior)`; }
+      else {
+        // Verifica que el giro en L cabe dentro del cajón
+        const branchClearance = fs.w - portW - 2*T;
+        if (lBranchLen <= branchClearance) {
+          lClass='warn'; lInfo=`⚠ Port en L: ${l1.toFixed(1)} cm recto + ${lBranchLen.toFixed(1)} cm lateral. Cabe dentro del cajón.`;
+        } else {
+          lClass='err'; fits=false;
+          lInfo=`⛔ Port en L NO cabe: necesita ${lBranchLen.toFixed(1)} cm lateral pero solo hay ${branchClearance.toFixed(1)} cm disponibles. Reduce longitud o ajusta cara.`;
+        }
+      }
+    } else {
+      const dCm = p.dia * 2.54;
+      portW = dCm; portH = dCm;
+      fits = dCm <= fs.w - 2*T && dCm <= fs.h - 2*T;
+      const l1 = Math.min(p.len, internalDepth - dCm);
+      lBranchLen = Math.max(0, p.len - l1);
+      needsL = lBranchLen > 0;
+      if (!needsL) { lClass='ok'; lInfo=`✅ Tubo recto: entra completo (${p.len} cm ≤ ${(internalDepth-dCm).toFixed(1)} cm interior)`; }
+      else {
+        const branchClearance = fs.w - dCm*2 - 2*T;
+        if (lBranchLen <= branchClearance) {
+          lClass='warn'; lInfo=`⚠ Tubo en L: ${l1.toFixed(1)} cm recto + ${lBranchLen.toFixed(1)} cm lateral. Cabe dentro del cajón.`;
+        } else {
+          lClass='err'; fits=false;
+          lInfo=`⛔ Tubo en L NO cabe: necesita ${lBranchLen.toFixed(1)} cm lateral pero solo hay ${branchClearance.toFixed(1)} cm. Reduce longitud del port.`;
+        }
+      }
+    }
+
+    return `
+    <div class="item-card ${fits?'':'invalid'}" id="pc_${i}">
+      <div class="item-card-header">
+        <span class="item-badge ${p.type==='maze'?'port-maze':'port-tube'}">${p.type==='maze'?'🔷 LABERINTO':'⭕ TUBO'} ${i+1}</span>
+        <button class="btn-del" onclick="removePort(${i})">✕ Quitar</button>
+      </div>
+      ${!fits ? `<div class="alert alert-danger"><span class="alert-icon">⛔</span>Port no válido — ver detalle abajo.</div>` : ''}
+
+      <div class="field">
+        <label>Tipo de port</label>
+        <select onchange="ports[${i}].type=this.value;renderAll();drawAll();saveState()">
+          <option value="maze" ${p.type==='maze'?'selected':''}>Laberinto (rectangular)</option>
+          <option value="tube" ${p.type==='tube'?'selected':''}>Tubo (redondo)</option>
+        </select>
+      </div>
+
+      ${p.type==='maze' ? `
+      <div class="grid3">
+        <div class="field"><label>Ancho (cm)</label>
+          <input type="number" value="${p.w}" oninput="ports[${i}].w=+this.value;renderAll();drawAll();saveState()"></div>
+        <div class="field"><label>Alto (cm)</label>
+          <input type="number" value="${p.h}" oninput="ports[${i}].h=+this.value;renderAll();drawAll();saveState()"></div>
+        <div class="field"><label>Longitud (cm)</label>
+          <input type="number" value="${p.len}" oninput="ports[${i}].len=+this.value;renderAll();drawAll();saveState()"></div>
+      </div>
+      ` : `
+      <div class="grid2">
+        <div class="field"><label>Diámetro (pulg)</label>
+          <input type="number" value="${p.dia}" step="0.5" oninput="ports[${i}].dia=+this.value;renderAll();drawAll();saveState()"></div>
+        <div class="field"><label>Longitud (cm)</label>
+          <input type="number" value="${p.len}" oninput="ports[${i}].len=+this.value;renderAll();drawAll();saveState()"></div>
+      </div>
+      `}
+
+      <div class="field">
+        <label>Cara de salida</label>
+        <select onchange="ports[${i}].face=this.value;renderAll();drawAll();saveState()">
+          ${['front','back','left','right','top'].map(k=>`<option value="${k}" ${p.face===k?'selected':''}>${FACE_LABELS[k]}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>Posición horizontal en la cara</label>
+        <select onchange="ports[${i}].posH=this.value;renderAll();drawAll();saveState()">
+          <option value="left" ${p.posH==='left'?'selected':''}>Izquierda</option>
+          <option value="center" ${p.posH==='center'?'selected':''}>Centro</option>
+          <option value="right" ${p.posH==='right'?'selected':''}>Derecha</option>
+        </select>
+      </div>
+
+      <div class="port-l-info ${lClass} show">${lInfo}</div>
+
+    </div>`;
+  }).join('');
+}
+
+// ================================================
+//  CALCULOS
+// ================================================
+function calcVolPorts() {
+  return ports.reduce((acc, p) => {
+    if (p.type === 'maze') return acc + (p.w * p.h * p.len) / 1000;
+    const r = (p.dia * 2.54) / 2;
+    return acc + (Math.PI * r * r * p.len) / 1000;
+  }, 0);
+}
+
+function calcSintonia() {
+  const { Wi, Hi, Di } = boxDims;
+  const vNeto = Math.max(0, (Wi * Hi * Di) / 1000 - calcVolPorts());
+  let hz = 0, totalArea = 0;
+  ports.forEach(p => {
+    const area = p.type === 'maze' ? p.w * p.h : Math.PI * Math.pow(p.dia*2.54/2, 2);
+    totalArea += area;
+    hz = (34400 / 6.28) * Math.sqrt(area / (vNeto * 1000 * (p.len + 0.8 * Math.sqrt(area))));
+  });
+
+  // Ajuste con Thiele-Small si disponible
+  let tsNote = '';
+  if (useAcustica && acusticaData.fs && acusticaData.qts && acusticaData.vas) {
+    const fs = parseFloat(acusticaData.fs);
+    const qts = parseFloat(acusticaData.qts);
+    const vas = parseFloat(acusticaData.vas);
+    const vb = (Wi * Hi * Di) / 1000;
+    const fb = fs * Math.pow(vas / vb, 0.5);
+    hz = fb;
+    tsNote = `Calculado con Thiele-Small (Fs=${fs}Hz, Qts=${qts}, Vas=${vas}L)`;
+  }
+
+  return { vNeto, hz: Math.round(hz), tsNote };
+}
+
+function renderResults() {
+  const { vNeto, hz, tsNote } = calcSintonia();
+  const { W, H, D, T, Wi, Hi, Di } = boxDims;
+
+  document.getElementById('hudVol').textContent = vNeto.toFixed(2) + ' L';
+  document.getElementById('hudHz').textContent = hz + ' Hz';
+
+  const badgeHz = document.getElementById('badgeHz');
+  badgeHz.classList.toggle('warn', hz > 0 && hz < 25 || hz > 120);
+
+  document.getElementById('boxSummary').innerHTML = `
+    <b style="color:var(--text)">Externo:</b> ${W}×${H}×${D} cm<br>
+    <b style="color:var(--text)">Interior:</b> ${Wi.toFixed(1)}×${Hi.toFixed(1)}×${Di.toFixed(1)} cm<br>
+    <b style="color:var(--text)">Espesor:</b> ${T} cm (${T*10} mm)<br>
+    <b style="color:var(--text)">Material:</b> ${(boxDims.tipo||'MDF').toUpperCase()}
+  `;
+
+  document.getElementById('resultados').innerHTML = `
+    <div style="color:var(--text)">Vol. bruto: <b style="color:var(--accent)">${(W*H*D/1000).toFixed(2)} L</b></div>
+    <div style="color:var(--text)">Vol. ports: <b style="color:var(--warn)">${calcVolPorts().toFixed(3)} L</b></div>
+    <div style="color:var(--text)">Vol. neto: <b style="color:var(--ok)">${vNeto.toFixed(2)} L</b></div>
+    <div style="color:var(--text)">Sintonía: <b style="color:var(--accent)">${hz} Hz</b></div>
+    ${tsNote ? `<div style="font-size:0.6rem;color:var(--text2);margin-top:4px">${tsNote}</div>` : ''}
+  `;
+
+  // Alertas globales
+  const alerts = [];
+  woofers.forEach((w,i) => {
+    const fs = faceSize(w.face);
+    const dCm = w.dia*2.54;
+    if (dCm > fs.w-2*boxDims.T || dCm > fs.h-2*boxDims.T)
+      alerts.push(`<div class="alert alert-danger"><span class="alert-icon">⛔</span>Woofer ${i+1} (${w.dia}") no cabe en cara ${FACE_LABELS[w.face]}.</div>`);
+  });
+  document.getElementById('globalAlerts').innerHTML = alerts.join('');
+}
+
+// ================================================
+//  RENDER ALL
+// ================================================
+function renderAll() {
+  renderWoofers();
+  renderPorts();
+  renderResults();
+}
+
+// ================================================
+//  CANVAS 3D — RENDERIZADO PROPIO
+// ================================================
+const CV = {
+  canvas: null, ctx: null, W: 0, H: 0,
+  SCALE: 5
+};
+
+function initCanvas() {
+  CV.canvas = document.getElementById('viewer3d');
+  CV.ctx = CV.canvas.getContext('2d');
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  // Mouse drag
+  CV.canvas.addEventListener('mousedown', e => { isDragging=true; lastX=e.clientX; lastY=e.clientY; });
+  window.addEventListener('mouseup', () => isDragging=false);
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    rY += (e.clientX - lastX) * 0.5;
+    rX -= (e.clientY - lastY) * 0.5;
+    lastX=e.clientX; lastY=e.clientY;
+    drawAll();
+  });
+
+  // Touch drag
+  CV.canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    isDragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+  }, { passive:false });
+  CV.canvas.addEventListener('touchend', () => isDragging=false);
+  CV.canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!isDragging) return;
+    rY += (e.touches[0].clientX - lastX) * 0.5;
+    rX -= (e.touches[0].clientY - lastY) * 0.5;
+    lastX=e.touches[0].clientX; lastY=e.touches[0].clientY;
+    drawAll();
+  }, { passive:false });
+}
+
+function resizeCanvas() {
+  const wrap = document.querySelector('.viewer-wrap');
+  CV.W = wrap.clientWidth;
+  CV.H = Math.max(wrap.clientHeight || 340, 340);
+  CV.canvas.width  = CV.W * devicePixelRatio;
+  CV.canvas.height = CV.H * devicePixelRatio;
+  CV.canvas.style.width  = CV.W + 'px';
+  CV.canvas.style.height = CV.H + 'px';
+  drawAll();
+}
+
+function resetView() { rX=-15; rY=35; drawAll(); }
+function setView(rx, ry) { rX=rx; rY=ry; drawAll(); }
+
+// ---- PROYECCIÓN 3D ----
+function project3D(x, y, z) {
+  const rx = rX * Math.PI / 180;
+  const ry = rY * Math.PI / 180;
+  // Rotate Y
+  const x1 = x * Math.cos(ry) + z * Math.sin(ry);
+  const z1 = -x * Math.sin(ry) + z * Math.cos(ry);
+  // Rotate X
+  const y2 = y * Math.cos(rx) - z1 * Math.sin(rx);
+  const z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
+  // Perspectiva
+  const fov = 800;
+  const scale = fov / (fov + z2);
+  return { px: x1 * scale, py: y2 * scale, z: z2 };
+}
+
+function drawAll() {
+  const ctx = CV.ctx;
+  const dpr = devicePixelRatio;
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, CV.W, CV.H);
+
+  const { W, H, D, T } = boxDims;
+  const s = CV.SCALE;
+  const cx = CV.W / 2, cy = CV.H / 2;
+
+  // Centrar el cajón
+  const offX = -W*s/2, offY = -H*s/2, offZ = -D*s/2;
+
+  const pts = (x,y,z) => {
+    const p = project3D((x+offX), (y+offY), (z+offZ));
+    return { px: cx + p.px, py: cy + p.py, z: p.z };
+  };
+
+  // 8 vértices del cajón
+  const v = [
+    pts(0,  0,  0),   // 0
+    pts(W*s,0,  0),   // 1
+    pts(W*s,H*s,0),   // 2
+    pts(0,  H*s,0),   // 3
+    pts(0,  0,  D*s), // 4
+    pts(W*s,0,  D*s), // 5
+    pts(W*s,H*s,D*s), // 6
+    pts(0,  H*s,D*s), // 7
+  ];
+
+  // Caras del cajón con colores de madera
+  const FACES_DEF = [
+    { verts:[3,2,1,0], name:'front',  base:'#1a3520', edge:'#2a5535' },  // frente
+    { verts:[4,5,6,7], name:'back',   base:'#0e2018', edge:'#1a3520' },  // atrás
+    { verts:[0,1,5,4], name:'bottom', base:'#152a1a', edge:'#203d25' },  // fondo
+    { verts:[3,7,6,2], name:'top',    base:'#1f3f28', edge:'#2a5535' },  // tapa
+    { verts:[0,4,7,3], name:'left',   base:'#172e1e', edge:'#243e29' },  // izq
+    { verts:[1,2,6,5], name:'right',  base:'#152a1a', edge:'#1e3820' },  // der
+  ];
+
+  // Ordenar caras por profundidad (pintor)
+  const facesWithDepth = FACES_DEF.map(f => {
+    const avgZ = f.verts.reduce((s,vi) => s + v[vi].z, 0) / 4;
+    return { ...f, avgZ };
+  }).sort((a,b) => b.avgZ - a.avgZ);
+
+  // Dibujar caras
+  facesWithDepth.forEach(f => {
+    ctx.beginPath();
+    f.verts.forEach((vi, idx) => {
+      const p = v[vi];
+      idx === 0 ? ctx.moveTo(p.px, p.py) : ctx.lineTo(p.px, p.py);
+    });
+    ctx.closePath();
+    ctx.fillStyle = f.base;
+    ctx.fill();
+    ctx.strokeStyle = '#00f2ff';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Veta de madera
+    ctx.save();
+    ctx.clip();
+    ctx.globalAlpha = 0.06;
+    const p0 = v[f.verts[0]], p1 = v[f.verts[1]];
+    for (let i = -300; i < 300; i += 8) {
+      ctx.beginPath();
+      ctx.moveTo(p0.px + i, p0.py - 200);
+      ctx.lineTo(p0.px + i + 10, p0.py + 200);
+      ctx.strokeStyle = '#8B5E3C';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  });
+
+  // ---- WOOFERS ----
+  woofers.forEach(w => {
+    const dCm = w.dia * 2.54;
+    const r = (dCm * s) / 2;
+    const { w: fw, h: fh } = faceSize(w.face);
+
+    let cx3d, cy3d;
+    // Posición horizontal
+    cx3d = w.posH === 'left' ? (r + T*s + 2) : w.posH === 'right' ? (fw*s - r - T*s - 2) : (fw*s/2);
+    // Posición vertical
+    cy3d = w.posV === 'top' ? (r + T*s + 2) : w.posV === 'bottom' ? (fh*s - r - T*s - 2) : (fh*s/2);
+
+    // Proyectar el centro del woofer según la cara
+    let wx, wy, wz;
+    if (w.face==='front')  { wx=cx3d; wy=fh*s-cy3d; wz=D*s; }
+    else if (w.face==='back')   { wx=fw*s-cx3d; wy=fh*s-cy3d; wz=0; }
+    else if (w.face==='left')   { wx=0; wy=fh*s-cy3d; wz=cx3d; }
+    else if (w.face==='right')  { wx=W*s; wy=fh*s-cy3d; wz=fw*s-cx3d; }
+    else if (w.face==='top')    { wx=cx3d; wy=H*s; wz=fh*s-cy3d; }
+    else                        { wx=cx3d; wy=0; wz=cy3d; }
+
+    const wp = pts(wx, wy, wz);
+    const fs2 = faceSize(w.face);
+    const rproj = r * (800/(800+wp.z-cy)) * 0.9;
+
+    // Círculo woofer
+    ctx.beginPath();
+    ctx.arc(wp.px, wp.py, rproj, 0, Math.PI*2);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+    ctx.strokeStyle = '#00f2ff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Anillos internos
+    for (let ri = 0.85; ri > 0.2; ri -= 0.2) {
+      ctx.beginPath();
+      ctx.arc(wp.px, wp.py, rproj*ri, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(0,242,255,${0.15+ri*0.2})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Etiqueta
+    ctx.fillStyle = '#00f2ff';
+    ctx.font = `bold ${Math.max(9, rproj*0.35)}px Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(w.dia+'"', wp.px, wp.py);
+  });
+
+  // ---- PORTS ----
+  ports.forEach(p => {
+    const { w: fw, h: fh } = faceSize(p.face);
+    const fd = faceDepth(p.face);
+    const internalDepth = (fd - 2*T) * s;
+    const T2 = T * s;
+
+    if (p.type === 'maze') {
+      const pw = p.w * s, ph = p.h * s, plen = p.len * s;
+      const l1 = Math.min(plen, internalDepth);
+      const l2 = Math.max(0, plen - l1);
+
+      let bx = p.posH === 'left' ? T2 + pw/2 : p.posH === 'right' ? fw*s - T2 - pw/2 : fw*s/2;
+      let by = fh * s / 2;
+
+      drawMazePort3D(ctx, pts, p.face, bx, by, pw, ph, l1, l2, p.posH, W, H, D, s);
+    } else {
+      const dCm = p.dia * 2.54 * s;
+      const plen = p.len * s;
+      const l1 = Math.min(plen, internalDepth - dCm);
+      const l2 = Math.max(0, plen - l1);
+
+      let bx = p.posH === 'left' ? T2 + dCm/2 : p.posH === 'right' ? fw*s - T2 - dCm/2 : fw*s/2;
+      let by = fh * s / 2;
+
+      drawTubePort3D(ctx, pts, p.face, bx, by, dCm/2, plen, l1, l2, p.posH, W, H, D, s);
+    }
+  });
+
+  ctx.restore();
+}
+
+// ---- PORT LABERINTO 3D ----
+function drawMazePort3D(ctx, pts, face, bx, by, pw, ph, l1, l2, posH, W, H, D, s) {
+  // Dibujo simplificado 2D sobre la cara proyectada para claridad
+  const drawRect = (x1,y1,z1, x2,y2,z2, fillC) => {
+    const pa = pts(x1,y1,z1), pb = pts(x2,y2,z2);
+    // Mini rect aproximado
+    ctx.beginPath();
+    ctx.rect(Math.min(pa.px,pb.px), Math.min(pa.py,pb.py),
+             Math.abs(pb.px-pa.px)||pw*0.5, Math.abs(pb.py-pa.py)||ph*0.5);
+    ctx.fillStyle = fillC;
+    ctx.fill();
+    ctx.strokeStyle = '#ffcc00';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  };
+
+  // Rect principal en la cara
+  let ox, oy, oz;
+  if (face==='front')  { ox=bx; oy=H*s-by; oz=D*s; }
+  else if (face==='back')   { ox=W*s-bx; oy=H*s-by; oz=0; }
+  else if (face==='left')   { ox=0; oy=H*s-by; oz=bx; }
+  else if (face==='right')  { ox=W*s; oy=H*s-by; oz=(faceSize(face).w*s)-bx; }
+  else if (face==='top')    { ox=bx; oy=H*s; oz=(faceSize(face).h*s)-by; }
+  else                      { ox=bx; oy=0; oz=by; }
+
+  const p0 = pts(ox, oy, oz);
+  ctx.beginPath();
+  ctx.arc(p0.px, p0.py, Math.max(pw,ph)*0.4, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,204,0,0.2)';
+  ctx.fill();
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Etiqueta port
+  ctx.fillStyle = '#ffcc00';
+  ctx.font = 'bold 9px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('PORT', p0.px, p0.py);
+
+  // Línea que indica la profundidad del port
+  if (l2 > 0) {
+    const p1 = pts(ox + (posH==='right'?-l2:l2)*0.6, oy, oz);
+    ctx.beginPath();
+    ctx.setLineDash([4,3]);
+    ctx.moveTo(p0.px, p0.py); ctx.lineTo(p1.px, p1.py);
+    ctx.strokeStyle = '#ffcc00';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Flecha L
+    ctx.fillStyle = '#ffcc00';
+    ctx.font = 'bold 8px Segoe UI';
+    ctx.fillText('L', (p0.px+p1.px)/2, (p0.py+p1.py)/2 - 8);
+  }
+}
+
+// ---- PORT TUBO 3D ----
+function drawTubePort3D(ctx, pts, face, bx, by, r, plen, l1, l2, posH, W, H, D, s) {
+  let ox, oy, oz;
+  if (face==='front')       { ox=bx; oy=H*s-by; oz=D*s; }
+  else if (face==='back')   { ox=W*s-bx; oy=H*s-by; oz=0; }
+  else if (face==='left')   { ox=0; oy=H*s-by; oz=bx; }
+  else if (face==='right')  { ox=W*s; oy=H*s-by; oz=faceSize(face).w*s-bx; }
+  else if (face==='top')    { ox=bx; oy=H*s; oz=faceSize(face).h*s-by; }
+  else                      { ox=bx; oy=0; oz=by; }
+
+  const p0 = pts(ox, oy, oz);
+
+  ctx.beginPath();
+  ctx.arc(p0.px, p0.py, r*0.7, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,149,0,0.25)';
+  ctx.fill();
+  ctx.strokeStyle = '#ff9500';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(p0.px, p0.py, r*0.4, 0, Math.PI*2);
+  ctx.fillStyle = '#050e1a';
+  ctx.fill();
+  ctx.strokeStyle = '#ff9500';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = '#ff9500';
+  ctx.font = 'bold 8px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('T', p0.px, p0.py);
+
+  if (l2 > 0) {
+    const p1 = pts(ox + (posH==='right'?-l2*0.6:l2*0.6), oy, oz);
+    ctx.beginPath();
+    ctx.setLineDash([4,3]);
+    ctx.moveTo(p0.px, p0.py); ctx.lineTo(p1.px, p1.py);
+    ctx.strokeStyle = '#ff9500';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#ff9500';
+    ctx.font = 'bold 8px Segoe UI';
+    ctx.fillText('L', (p0.px+p1.px)/2, (p0.py+p1.py)/2-8);
+  }
+}
+
+// ================================================
+//  ACÚSTICA AVANZADA
+// ================================================
+function toggleAcustica() {
+  useAcustica = !useAcustica;
+  document.getElementById('acusticaSwitch').classList.toggle('on', useAcustica);
+  document.getElementById('btnOpenAcustica').style.display = useAcustica ? 'block' : 'none';
+  saveState(); renderResults();
+}
+
+function openModalAcustica() {
+  const grid = document.getElementById('acousticGrid');
+  grid.innerHTML = ACOUSTIC_PARAMS.map(p => `
+    <div class="modal-item ${acusticaData[p.key]?'sel':''}" id="ap_${p.key}" onclick="toggleAcParam('${p.key}', this)">
+      <span class="modal-check">✓ </span>
+      <div class="modal-item-title">${p.label}</div>
+      <div class="modal-item-sub">${p.hint}</div>
+      <input class="modal-input" type="number" placeholder="${p.unit || 'valor'}"
+        value="${acusticaData[p.key] || ''}"
+        onclick="event.stopPropagation()"
+        oninput="acusticaData['${p.key}']=this.value;document.getElementById('ap_${p.key}').classList.toggle('sel',!!this.value)"
+        step="any">
+    </div>
+  `).join('');
+  document.getElementById('modalAcustica').classList.add('show');
+}
+
+function toggleAcParam(key, el) {
+  // No toggle al clickar la tarjeta — el input lo maneja
+}
+
+function closeModalAcustica() {
+  document.getElementById('modalAcustica').classList.remove('show');
+}
+
+function saveAcustica() {
+  saveState();
+  updateAcusticaResumen();
+  renderResults();
+  closeModalAcustica();
+}
+
+function updateAcusticaResumen() {
+  const filled = ACOUSTIC_PARAMS.filter(p => acusticaData[p.key]);
+  const el = document.getElementById('acusticaResumen');
+  if (!el) return;
+  if (!filled.length) { el.innerHTML = '<span style="color:var(--text2)">Sin parámetros cargados.</span>'; return; }
+  el.innerHTML = filled.map(p => `<b style="color:var(--accent)">${p.key.toUpperCase()}</b>: ${acusticaData[p.key]} ${p.unit}`).join(' · ');
+}
+
+// ================================================
+//  NAVEGACIÓN
+// ================================================
+function goBack() { saveState(); window.location.href = 'parte1.html'; }
+
+function goNext() {
+  const hasInvalid = document.querySelectorAll('.item-card.invalid').length > 0;
+  if (hasInvalid) {
+    if (!confirm('⚠ Hay componentes con errores de validación. ¿Deseas continuar de todas formas?')) return;
+  }
+  saveState();
+  window.location.href = 'parte3.html';
+}
+
+</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AUDIO-TECH v7 — Parte 3: Planos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --accent:#00f2ff; --accent2:#ff9500; --bg:#030a12;
+  --panel:#0a1628; --panel2:#0f1e35; --border:#1a3050;
+  --text:#c8dff0; --text2:#6a8faa;
+  --danger:#ff4040; --ok:#22c55e; --warn:#ffcc00;
+  --wood1:#8B5E3C; --wood2:#5C3B1E; --wood3:#A0724A;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+.header{background:var(--panel);border-bottom:2px solid var(--accent);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-title{color:var(--accent);font-size:1rem;font-weight:900;letter-spacing:2px;}
+.header-sub{color:var(--text2);font-size:0.7rem;letter-spacing:1px;margin-top:2px;}
+.step-pills{display:flex;gap:6px;}
+.step-pill{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:900;border:2px solid var(--border);color:var(--text2);}
+.step-pill.done{border-color:var(--ok);color:var(--ok);background:rgba(34,197,94,0.1);}
+.step-pill.active{border-color:var(--accent);color:var(--accent);background:rgba(0,242,255,0.1);}
+
+.main{flex:1;padding:16px;max-width:700px;margin:0 auto;width:100%;padding-bottom:110px;}
+
+.section{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.section-header{padding:13px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:var(--panel2);user-select:none;}
+.section-title{font-size:0.82rem;font-weight:700;color:var(--accent);letter-spacing:1px;}
+.chevron{color:var(--text2);font-size:0.8rem;transition:transform 0.3s;}
+.chevron.open{transform:rotate(180deg);}
+.section-body{padding:16px;display:none;}
+.section-body.open{display:block;}
+
+/* RESUMEN CARDS */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;}
+.sum-card{background:#060f1a;border:1px solid var(--border);border-radius:10px;padding:12px;}
+.sum-card-title{font-size:0.6rem;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+.sum-card-val{font-size:1.1rem;font-weight:900;color:var(--accent);}
+.sum-card-sub{font-size:0.65rem;color:var(--text2);margin-top:2px;}
+
+/* TABLA DE PIEZAS */
+.piezas-table{width:100%;border-collapse:collapse;font-size:0.75rem;margin-top:10px;}
+.piezas-table th{background:rgba(0,242,255,0.1);color:var(--accent);padding:8px 10px;text-align:left;font-size:0.65rem;letter-spacing:1px;border-bottom:1px solid var(--border);}
+.piezas-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.piezas-table tr:last-child td{border-bottom:none;}
+.piece-id{display:inline-block;width:28px;height:28px;border-radius:6px;font-weight:900;font-size:0.75rem;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* PREVIEW CANVAS */
+.preview-wrap{background:#040c18;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;position:relative;}
+.preview-label{font-size:0.65rem;color:var(--text2);letter-spacing:1px;padding:10px 14px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+canvas{display:block;width:100%;}
+
+/* BOTONES PDF */
+.pdf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+@media(max-width:400px){.pdf-grid{grid-template-columns:1fr;}}
+.btn-pdf{padding:16px;border:none;border-radius:12px;font-size:0.85rem;font-weight:900;cursor:pointer;letter-spacing:1px;display:flex;flex-direction:column;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;}
+.btn-pdf:active{opacity:0.8;transform:scale(0.97);}
+.btn-pdf .icon{font-size:1.6rem;}
+.btn-pdf .label{font-size:0.75rem;}
+.btn-pdf .sub{font-size:0.6rem;opacity:0.8;font-weight:400;}
+.btn-despiece{background:linear-gradient(135deg,#1a3d25,#0e2518);color:var(--ok);border:1px solid var(--ok);}
+.btn-ensamble{background:linear-gradient(135deg,#1a2d3d,#0e1825);color:var(--accent);border:1px solid var(--accent);}
+.btn-full{background:linear-gradient(135deg,#2d1a3d,#180e25);color:#c084fc;border:1px solid #c084fc;}
+
+/* PROGRESS */
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px;display:none;}
+.progress-fill{height:100%;background:var(--accent);transition:width 0.3s;width:0%;}
+.progress-label{font-size:0.65rem;color:var(--text2);margin-top:6px;display:none;text-align:center;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:10px;z-index:200;}
+.btn{flex:1;padding:13px;border-radius:10px;font-size:0.82rem;font-weight:900;border:none;cursor:pointer;letter-spacing:1px;-webkit-tap-highlight-color:transparent;}
+.btn-primary{background:var(--accent);color:#030a12;}
+.btn-secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+.btn:active{opacity:0.8;transform:scale(0.98);}
+
+.hint{font-size:0.6rem;color:var(--text2);line-height:1.4;margin-top:6px;}
+.sep{height:1px;background:var(--border);margin:12px 0;}
+.alert-ok{background:rgba(34,197,94,0.1);border:1px solid var(--ok);border-radius:8px;padding:10px 14px;font-size:0.75rem;color:#6ee7a0;margin-bottom:10px;}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:0.6rem;font-weight:700;margin-left:4px;vertical-align:middle;}
+.tag-madera{background:rgba(139,94,60,0.3);color:var(--wood3);border:1px solid var(--wood1);}
+.tag-port{background:rgba(255,204,0,0.15);color:var(--warn);border:1px solid var(--warn);}
+.tag-woofer{background:rgba(0,242,255,0.1);color:var(--accent);border:1px solid var(--accent);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">🔊 AUDIO-TECH v7</div>
+    <div class="header-sub">PASO 3 — PLANOS Y CORTES</div>
+  </div>
+  <div class="step-pills">
+    <div class="step-pill done">✓</div>
+    <div class="step-pill done">✓</div>
+    <div class="step-pill active">3</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- RESUMEN GENERAL -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSec('sec-resumen')">
+      <div class="section-title">📋 RESUMEN DEL PROYECTO</div>
+      <div class="chevron open" id="ch-sec-resumen">▼</div>
+    </div>
+    <div class="section-body open" id="sec-resumen">
+      <div class="summary-grid" id="summaryCards"></div>
+      <div id="componentesList" style="margin-top:10px;font-size:0.72rem;line-height:1.9;color:var(--text2);"></div>
+    </div>
+  </div>
+
+  <!-- TABLA DE PIEZAS -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSec('sec-piezas')">
+      <div class="section-title">🪵 LISTA DE CORTES</div>
+      <div class="chevron open" id="ch-sec-piezas">▼</div>
+    </div>
+    <div class="section-body open" id="sec-piezas">
+      <p class="hint" style="margin-bottom:10px">Medidas de corte finales con descuento de espesor. Identifica cada pieza con su letra para el ensamble.</p>
+      <div id="tablaPiezas"></div>
+    </div>
+  </div>
+
+  <!-- PREVIEW DESPIECE -->
+  <div class="preview-wrap">
+    <div class="preview-label">👁 VISTA PREVIA — DESPIECE</div>
+    <canvas id="canvasDespiece"></canvas>
+  </div>
+
+  <!-- PREVIEW ENSAMBLE -->
+  <div class="preview-wrap">
+    <div class="preview-label">👁 VISTA PREVIA — ENSAMBLE CON MEDIDAS</div>
+    <canvas id="canvasEnsamble"></canvas>
+  </div>
+
+  <!-- DESCARGAS -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSec('sec-pdf')">
+      <div class="section-title">📥 DESCARGAR PLANOS PDF</div>
+      <div class="chevron open" id="ch-sec-pdf">▼</div>
+    </div>
+    <div class="section-body open" id="sec-pdf">
+      <div class="pdf-grid">
+        <button class="btn-pdf btn-despiece" onclick="downloadDespiece()">
+          <span class="icon">🪵</span>
+          <span class="label">DESPIECE</span>
+          <span class="sub">Tabla de cortes</span>
+        </button>
+        <button class="btn-pdf btn-ensamble" onclick="downloadEnsamble()">
+          <span class="icon">📐</span>
+          <span class="label">ENSAMBLE</span>
+          <span class="sub">Plano con medidas</span>
+        </button>
+      </div>
+      <button class="btn-pdf btn-full" style="width:100%;flex-direction:row;justify-content:center;gap:12px" onclick="downloadCompleto()">
+        <span class="icon">📄</span>
+        <div><div class="label">PLANOS COMPLETOS</div><div class="sub">Despiece + Ensamble en un solo PDF</div></div>
+      </button>
+      <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-nav">
+  <button class="btn btn-secondary" onclick="goBack()">← VOLVER</button>
+  <button class="btn btn-primary" onclick="window.location.href='parte1.html'">🏠 NUEVO PROYECTO</button>
+</div>
+
+<script>
+// ================================================
+//  ESTADO GLOBAL
+// ================================================
+let BOX = { W:80,H:45,D:45,T:1.8,Wi:76.4,Hi:41.4,Di:41.4,tipo:'MDF',proyecto:'Mi Cajón' };
+let WOOFERS = [], PORTS = [], ACUSTICA = {}, USE_ACUSTICA = false;
+let PIEZAS = [];
+
+const COLORS_PIEZAS = ['#00f2ff','#22c55e','#ff9500','#c084fc','#f43f5e','#38bdf8','#a3e635','#fb923c'];
+
+const FACE_LABELS = {
+  front:'FRENTE', back:'TRASERA', left:'LAT. IZQ', right:'LAT. DER', top:'TAPA', bottom:'FONDO'
+};
+
+// ================================================
+//  INIT
+// ================================================
+window.addEventListener('load', () => {
+  loadState();
+  calcPiezas();
+  renderAll();
+  drawDespiece();
+  drawEnsamble();
+});
+
+// ================================================
+//  LOAD STATE
+// ================================================
+function loadState() {
+  try {
+    const p1 = JSON.parse(localStorage.getItem('at7_part1')||'{}');
+    const p2 = JSON.parse(localStorage.getItem('at7_part2')||'{}');
+    if (p1.extW) {
+      const T=parseFloat(p1.thick||1.8), W=parseFloat(p1.extW), H=parseFloat(p1.extH), D=parseFloat(p1.extD);
+      BOX={ W, H, D, T, Wi:W-2*T, Hi:H-2*T, Di:D-2*T, tipo:(p1.tipoMadera||'mdf').toUpperCase(), proyecto:p1.projectName||'Mi Cajón' };
+    }
+    if (p2.woofers) WOOFERS=p2.woofers;
+    if (p2.ports)   PORTS=p2.ports;
+    if (p2.acusticaData) ACUSTICA=p2.acusticaData;
+    if (p2.useAcustica) USE_ACUSTICA=p2.useAcustica;
+  } catch(e){}
+}
+
+// ================================================
+//  CÁLCULO PIEZAS
+// ================================================
+function calcPiezas() {
+  const {W,H,D,T} = BOX;
+  // Definición clásica: frente/atrás = W×H, lados = (D-2T)×H, tapa/fondo = (W-2T)×(D-2T)
+  // Pero respetamos que pueden ser independientes
+  PIEZAS = [
+    { id:'A', nombre:'FRENTE',    qty:1, ancho:W,       alto:H,       esp:T, cara:'front',  color:COLORS_PIEZAS[0] },
+    { id:'B', nombre:'TRASERA',   qty:1, ancho:W,       alto:H,       esp:T, cara:'back',   color:COLORS_PIEZAS[1] },
+    { id:'C', nombre:'LAT. IZQ',  qty:1, ancho:D-2*T,   alto:H,       esp:T, cara:'left',   color:COLORS_PIEZAS[2] },
+    { id:'D', nombre:'LAT. DER',  qty:1, ancho:D-2*T,   alto:H,       esp:T, cara:'right',  color:COLORS_PIEZAS[3] },
+    { id:'E', nombre:'TAPA',      qty:1, ancho:W-2*T,   alto:D-2*T,   esp:T, cara:'top',    color:COLORS_PIEZAS[4] },
+    { id:'F', nombre:'FONDO',     qty:1, ancho:W-2*T,   alto:D-2*T,   esp:T, cara:'bottom', color:COLORS_PIEZAS[5] },
+  ];
+}
+
+// ================================================
+//  CALC SINTONÍA
+// ================================================
+function calcSintonia() {
+  const {Wi,Hi,Di} = BOX;
+  let pVol=0;
+  PORTS.forEach(p=>{
+    if(p.type==='maze') pVol+=(p.w*p.h*p.len)/1000;
+    else { const r=(p.dia*2.54)/2; pVol+=(Math.PI*r*r*p.len)/1000; }
+  });
+  const vNeto = Math.max(0,(Wi*Hi*Di)/1000 - pVol);
+  let hz=0;
+  if(PORTS.length>0){
+    const p=PORTS[0];
+    const area = p.type==='maze'? p.w*p.h : Math.PI*Math.pow(p.dia*2.54/2,2);
+    hz = Math.round((34400/6.28)*Math.sqrt(area/(vNeto*1000*(p.len+0.8*Math.sqrt(area)))));
+    if(USE_ACUSTICA && ACUSTICA.fs && ACUSTICA.vas){
+      const fs=parseFloat(ACUSTICA.fs), vas=parseFloat(ACUSTICA.vas);
+      hz = Math.round(fs*Math.pow(vas/vNeto,0.5));
+    }
+  }
+  return { pVol, vNeto, hz };
+}
+
+// ================================================
+//  RENDER PANTALLA
+// ================================================
+function renderAll() {
+  renderSummary();
+  renderTablaPiezas();
+}
+
+function renderSummary() {
+  const {W,H,D,T,Wi,Hi,Di,tipo,proyecto} = BOX;
+  const {pVol,vNeto,hz} = calcSintonia();
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="sum-card">
+      <div class="sum-card-title">Dimensiones ext.</div>
+      <div class="sum-card-val" style="font-size:0.9rem">${W}×${H}×${D}</div>
+      <div class="sum-card-sub">cm (L×A×P)</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-card-title">Vol. neto</div>
+      <div class="sum-card-val">${vNeto.toFixed(2)} L</div>
+      <div class="sum-card-sub">${pVol>0?'Descontando '+pVol.toFixed(3)+' L de ports':''}</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-card-title">Sintonía</div>
+      <div class="sum-card-val">${hz||'—'} Hz</div>
+      <div class="sum-card-sub">${PORTS.length} port(s) configurado(s)</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-card-title">Material</div>
+      <div class="sum-card-val" style="font-size:0.85rem">${tipo}</div>
+      <div class="sum-card-sub">Espesor ${T} cm (${T*10} mm)</div>
+    </div>
+  `;
+
+  let compHTML = '';
+  if(WOOFERS.length) compHTML += WOOFERS.map((w,i)=>`<span class="tag tag-woofer">Woofer ${i+1}: ${w.dia}" — ${FACE_LABELS[w.face]||w.face}</span> `).join('');
+  if(PORTS.length) compHTML += PORTS.map((p,i)=>`<span class="tag tag-port">Port ${i+1}: ${p.type==='maze'?`${p.w}×${p.h}×${p.len}cm`:`⌀${p.dia}" ${p.len}cm`} — ${FACE_LABELS[p.face]||p.face}</span> `).join('');
+  document.getElementById('componentesList').innerHTML = compHTML || '<span style="color:var(--text2)">Sin componentes configurados.</span>';
+}
+
+function renderTablaPiezas() {
+  const {T} = BOX;
+  let html = `
+  <table class="piezas-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>PIEZA</th>
+        <th>ANCHO</th>
+        <th>ALTO</th>
+        <th>ESP.</th>
+        <th>CANT.</th>
+        <th>CARA</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  PIEZAS.forEach(p=>{
+    html+=`<tr>
+      <td><span class="piece-id" style="background:${p.color}22;color:${p.color};border:1px solid ${p.color}44">${p.id}</span></td>
+      <td style="color:var(--text);font-weight:600">${p.nombre}</td>
+      <td><b style="color:var(--accent)">${p.ancho.toFixed(1)}</b> cm</td>
+      <td><b style="color:var(--accent)">${p.alto.toFixed(1)}</b> cm</td>
+      <td style="color:var(--text2)">${p.esp.toFixed(1)} cm</td>
+      <td style="color:var(--ok);font-weight:700">${p.qty}</td>
+      <td style="color:var(--text2);font-size:0.65rem">${FACE_LABELS[p.cara]||p.cara}</td>
+    </tr>`;
+  });
+
+  // Woofer holes
+  WOOFERS.forEach((w,i)=>{
+    const dCm=(w.dia*2.54).toFixed(1);
+    html+=`<tr>
+      <td><span class="piece-id" style="background:rgba(0,242,255,0.1);color:var(--accent);border:1px solid #00f2ff44">W${i+1}</span></td>
+      <td style="color:var(--text);font-weight:600">BARRENO WOOFER ${i+1}</td>
+      <td><b style="color:var(--accent)">⌀ ${dCm}</b> cm</td>
+      <td style="color:var(--text2)">—</td>
+      <td style="color:var(--text2)">—</td>
+      <td style="color:var(--ok);font-weight:700">1</td>
+      <td style="color:var(--text2);font-size:0.65rem">${FACE_LABELS[w.face]||w.face}</td>
+    </tr>`;
+  });
+
+  // Port holes
+  PORTS.forEach((p,i)=>{
+    const medida = p.type==='maze'?`${p.w}×${p.h} cm`:`⌀ ${(p.dia*2.54).toFixed(1)} cm`;
+    html+=`<tr>
+      <td><span class="piece-id" style="background:rgba(255,204,0,0.1);color:var(--warn);border:1px solid #ffcc0044">P${i+1}</span></td>
+      <td style="color:var(--text);font-weight:600">BARRENO PORT ${i+1} (${p.type==='maze'?'LABER.':'TUBO'})</td>
+      <td style="color:var(--warn)">${medida}</td>
+      <td style="color:var(--text2)">—</td>
+      <td style="color:var(--text2)">—</td>
+      <td style="color:var(--ok);font-weight:700">1</td>
+      <td style="color:var(--text2);font-size:0.65rem">${FACE_LABELS[p.face]||p.face}</td>
+    </tr>`;
+  });
+
+  html+='</tbody></table>';
+  document.getElementById('tablaPiezas').innerHTML = html;
+}
+
+// ================================================
+//  CANVAS DESPIECE
+// ================================================
+function drawDespiece() {
+  const canvas = document.getElementById('canvasDespiece');
+  const W2 = canvas.offsetWidth || 660;
+  canvas.width = W2 * 2;
+
+  // Calcular altura necesaria
+  const rows = Math.ceil(PIEZAS.length / 3);
+  const cellH = 120, cellW = W2/3;
+  canvas.height = (rows * cellH + 160) * 2;
+  canvas.style.height = (rows * cellH + 160) + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2,2);
+  const cw = W2, ch = rows * cellH + 160;
+
+  // Fondo con textura madera
+  drawWoodBackground(ctx, cw, ch);
+
+  // Título
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('PLANO DE DESPIECE — ' + (BOX.proyecto||'CAJÓN').toUpperCase(), cw/2, 30);
+  ctx.font = '10px Segoe UI';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText(`Material: ${BOX.tipo} | Espesor: ${BOX.T} cm (${BOX.T*10} mm) | Externo: ${BOX.W}×${BOX.H}×${BOX.D} cm`, cw/2, 48);
+
+  // Línea decorativa
+  ctx.strokeStyle = '#00f2ff';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(20,58); ctx.lineTo(cw-20,58); ctx.stroke();
+
+  // Piezas
+  const margin = 16, pad = 10;
+  const cols = 3;
+  PIEZAS.forEach((p, idx) => {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const x = margin + col * (cw - margin*2) / cols;
+    const y = 70 + row * cellH;
+    const w = (cw - margin*2)/cols - pad;
+    const h = cellH - pad;
+    drawPiezaCard(ctx, p, x, y, w, h);
+  });
+
+  // Notas al pie
+  const footY = 70 + rows * cellH + 10;
+  ctx.strokeStyle = 'rgba(0,242,255,0.3)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(20,footY); ctx.lineTo(cw-20,footY); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '9px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText(`📋 ${PIEZAS.length} piezas de madera   🔩 ${WOOFERS.length} barreno(s) woofer   🌀 ${PORTS.length} barreno(s) port`, 20, footY+14);
+  ctx.textAlign = 'right';
+  ctx.fillText('AUDIO-TECH v7 — audiotech.app', cw-20, footY+14);
+}
+
+function drawPiezaCard(ctx, p, x, y, w, h) {
+  // Sombra
+  ctx.shadowColor='rgba(0,0,0,0.5)';
+  ctx.shadowBlur=8;
+
+  // Fondo de la tarjeta
+  ctx.fillStyle = '#1a0f08';
+  roundRect(ctx, x, y, w, h, 6);
+  ctx.fill();
+  ctx.shadowBlur=0;
+
+  // Borde con color de pieza
+  ctx.strokeStyle = p.color;
+  ctx.lineWidth = 2;
+  roundRect(ctx, x, y, w, h, 6);
+  ctx.stroke();
+
+  // Header de la tarjeta
+  ctx.fillStyle = p.color + '33';
+  roundRectTop(ctx, x, y, w, 22, 6);
+  ctx.fill();
+
+  // ID grande
+  ctx.fillStyle = p.color;
+  ctx.font = 'bold 14px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText(p.id, x+8, y+15);
+
+  // Nombre
+  ctx.font = 'bold 9px Segoe UI';
+  ctx.fillStyle = '#fff';
+  ctx.fillText(p.nombre, x+28, y+15);
+
+  // Representación visual de la pieza
+  const drawArea = { x: x+10, y: y+28, w: w-20, h: h-50 };
+  const scaleW = drawArea.w / Math.max(p.ancho, p.alto);
+  const scaleH = drawArea.h / Math.max(p.ancho, p.alto);
+  const sc = Math.min(scaleW, scaleH) * 0.85;
+  const rw = p.ancho * sc, rh = p.alto * sc;
+  const rx = drawArea.x + (drawArea.w - rw)/2;
+  const ry = drawArea.y + (drawArea.h - rh)/2;
+
+  // Veta de madera
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(rx, ry, rw, rh);
+  ctx.clip();
+  // Fondo madera
+  const grad = ctx.createLinearGradient(rx, ry, rx+rw, ry+rh);
+  grad.addColorStop(0, '#5C3B1E');
+  grad.addColorStop(0.3, '#7A4F2A');
+  grad.addColorStop(0.6, '#6B4422');
+  grad.addColorStop(1, '#4A2E14');
+  ctx.fillStyle = grad;
+  ctx.fillRect(rx, ry, rw, rh);
+  // Vetas
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+  ctx.lineWidth = 1;
+  for(let vi=0; vi<8; vi++){
+    const vx = rx + (rw/8)*vi + Math.random()*4;
+    ctx.beginPath();
+    ctx.moveTo(vx, ry);
+    ctx.bezierCurveTo(vx+3, ry+rh*0.3, vx-2, ry+rh*0.7, vx+1, ry+rh);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Borde de la pieza
+  ctx.strokeStyle = p.color;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(rx, ry, rw, rh);
+
+  // Cotas (flechas de medida)
+  drawCota(ctx, rx, ry+rh+4, rx+rw, ry+rh+4, `${p.ancho.toFixed(1)} cm`, p.color);
+  drawCotaV(ctx, rx-4, ry, rx-4, ry+rh, `${p.alto.toFixed(1)} cm`, p.color);
+
+  // Barrenos en esta pieza
+  let byH = WOOFERS.filter(w=>w.cara===p.cara || w.face===p.cara);
+  let byP = PORTS.filter(po=>po.face===p.cara);
+  if(byH.length || byP.length){
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.font='7px Segoe UI';
+    ctx.textAlign='center';
+    let note = '';
+    if(byH.length) note += `⌀ ${(byH[0].dia*2.54).toFixed(1)}cm `;
+    if(byP.length) note += `PORT`;
+    ctx.fillText(note, rx+rw/2, ry+rh/2+3);
+  }
+}
+
+function drawCota(ctx, x1, y, x2, y2, label, color) {
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 0.8;
+  // Línea
+  ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y2||y); ctx.stroke();
+  // Flechas
+  ctx.beginPath(); ctx.moveTo(x1,y); ctx.lineTo(x1+4,y-3); ctx.lineTo(x1+4,y+3); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x2,y); ctx.lineTo(x2-4,y-3); ctx.lineTo(x2-4,y+3); ctx.closePath(); ctx.fill();
+  // Label
+  ctx.font='bold 7px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillStyle='#fff';
+  ctx.fillText(label, (x1+x2)/2, y-3);
+}
+
+function drawCotaV(ctx, x, y1, x2, y2, label, color) {
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y1); ctx.lineTo(x-3,y1+4); ctx.lineTo(x+3,y1+4); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(x,y2); ctx.lineTo(x-3,y2-4); ctx.lineTo(x+3,y2-4); ctx.closePath(); ctx.fill();
+  ctx.save();
+  ctx.translate(x-8, (y1+y2)/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.font='bold 7px Segoe UI';
+  ctx.textAlign='center';
+  ctx.fillStyle='#fff';
+  ctx.fillText(label, 0, 0);
+  ctx.restore();
+}
+
+// ================================================
+//  CANVAS ENSAMBLE
+// ================================================
+function drawEnsamble() {
+  const canvas = document.getElementById('canvasEnsamble');
+  const CW = canvas.offsetWidth || 660;
+  const CH = 520;
+  canvas.width = CW * 2;
+  canvas.height = CH * 2;
+  canvas.style.height = CH + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2,2);
+
+  drawWoodBackground(ctx, CW, CH);
+
+  // Título
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 15px Segoe UI';
+  ctx.textAlign = 'center';
+  ctx.fillText('PLANO DE ENSAMBLE — ' + (BOX.proyecto||'CAJÓN').toUpperCase(), CW/2, 28);
+  ctx.font = '9px Segoe UI';
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  const {pVol,vNeto,hz} = calcSintonia();
+  ctx.fillText(`Vol. neto: ${vNeto.toFixed(2)} L | Sintonía: ${hz} Hz | Espesor: ${BOX.T}cm | ${BOX.tipo}`, CW/2, 44);
+
+  ctx.strokeStyle='rgba(0,242,255,0.4)';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(20,52); ctx.lineTo(CW-20,52); ctx.stroke();
+
+  // Vistas ortogonales
+  drawVistaFrontal(ctx, 40, 70, CW, CH);
+  drawVistaLateral(ctx, CW*0.55, 70, CW, CH);
+  drawVistaSuperior(ctx, 40, 290, CW, CH);
+  drawLeyenda(ctx, CW*0.55, 290, CW, CH);
+
+  // Pie
+  ctx.strokeStyle='rgba(0,242,255,0.3)';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(20,CH-22); ctx.lineTo(CW-20,CH-22); ctx.stroke();
+  ctx.font='8px Segoe UI'; ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.textAlign='left';
+  ctx.fillText('Medidas en centímetros (cm). Los barrenos de woofer y port se muestran en las vistas correspondientes.', 20, CH-10);
+  ctx.textAlign='right';
+  ctx.fillText('AUDIO-TECH v7', CW-20, CH-10);
+}
+
+function drawVistaFrontal(ctx, ox, oy, CW, CH) {
+  const {W,H,T} = BOX;
+  const maxW=CW*0.42, maxH=170;
+  const sc = Math.min(maxW/W, maxH/H) * 0.85;
+  const bw=W*sc, bh=H*sc;
+
+  // Label de vista
+  ctx.fillStyle='rgba(0,242,255,0.8)';
+  ctx.font='bold 8px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('VISTA FRONTAL', ox, oy-6);
+
+  // Borde cajón
+  const grad=ctx.createLinearGradient(ox,oy,ox+bw,oy+bh);
+  grad.addColorStop(0,'#3d2210'); grad.addColorStop(1,'#1a0e06');
+  ctx.fillStyle=grad;
+  ctx.fillRect(ox,oy,bw,bh);
+
+  // Vetas
+  ctx.save(); ctx.beginPath(); ctx.rect(ox,oy,bw,bh); ctx.clip();
+  ctx.strokeStyle='rgba(0,0,0,0.1)'; ctx.lineWidth=1.5;
+  for(let i=0;i<6;i++){
+    const vx=ox+(bw/5)*i+2;
+    ctx.beginPath(); ctx.moveTo(vx,oy); ctx.bezierCurveTo(vx+4,oy+bh*0.4,vx-3,oy+bh*0.7,vx+2,oy+bh); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Borde
+  ctx.strokeStyle='#00f2ff'; ctx.lineWidth=2;
+  ctx.strokeRect(ox,oy,bw,bh);
+
+  // Espesor interior (líneas punteadas)
+  ctx.strokeStyle='rgba(0,242,255,0.35)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.strokeRect(ox+T*sc, oy+T*sc, bw-2*T*sc, bh-2*T*sc);
+  ctx.setLineDash([]);
+
+  // Woofers en frente
+  WOOFERS.filter(w=>w.face==='front').forEach(w=>{
+    const r=(w.dia*2.54*sc)/2;
+    const cx2 = w.posH==='left'? ox+T*sc+r : w.posH==='right'? ox+bw-T*sc-r : ox+bw/2;
+    const cy2 = w.posV==='top'? oy+T*sc+r : w.posV==='bottom'? oy+bh-T*sc-r : oy+bh/2;
+    ctx.beginPath(); ctx.arc(cx2,cy2,r,0,Math.PI*2);
+    ctx.fillStyle='#000'; ctx.fill();
+    ctx.strokeStyle='#00f2ff'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#00f2ff'; ctx.font='bold 8px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(w.dia+'"', cx2, cy2);
+    ctx.textBaseline='alphabetic';
+  });
+
+  // Ports en frente
+  PORTS.filter(p=>p.face==='front').forEach(p=>{
+    if(p.type==='maze'){
+      const pw=p.w*sc, ph=p.h*sc;
+      const px2=p.posH==='left'? ox+T*sc : p.posH==='right'? ox+bw-T*sc-pw : ox+(bw-pw)/2;
+      const py2=oy+(bh-ph)/2;
+      ctx.fillStyle='rgba(255,204,0,0.25)'; ctx.fillRect(px2,py2,pw,ph);
+      ctx.strokeStyle='#ffcc00'; ctx.lineWidth=1.5; ctx.strokeRect(px2,py2,pw,ph);
+      ctx.fillStyle='#ffcc00'; ctx.font='bold 7px Segoe UI'; ctx.textAlign='center';
+      ctx.fillText('PORT', px2+pw/2, py2+ph/2+3);
+    } else {
+      const r=(p.dia*2.54*sc)/2;
+      const pcx=p.posH==='left'? ox+T*sc+r : p.posH==='right'? ox+bw-T*sc-r : ox+bw/2;
+      ctx.beginPath(); ctx.arc(pcx, oy+bh/2, r, 0, Math.PI*2);
+      ctx.fillStyle='rgba(255,204,0,0.25)'; ctx.fill();
+      ctx.strokeStyle='#ffcc00'; ctx.lineWidth=1.5; ctx.stroke();
+    }
+  });
+
+  // Cotas
+  drawCota(ctx, ox, oy+bh+10, ox+bw, oy+bh+10, `${W.toFixed(1)} cm`, '#00f2ff');
+  drawCotaV(ctx, ox-10, oy, ox-10, oy+bh, `${H.toFixed(1)} cm`, '#00f2ff');
+
+  // Etiqueta ID pieza
+  ctx.fillStyle='rgba(0,242,255,0.6)'; ctx.font='bold 9px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('A', ox+bw/2, oy-8);
+}
+
+function drawVistaLateral(ctx, startX, oy, CW, CH) {
+  const {D,H,T} = BOX;
+  const ox=startX+20;
+  const maxW=CW*0.35, maxH=170;
+  const sc=Math.min(maxW/D, maxH/H)*0.85;
+  const bw=D*sc, bh=H*sc;
+
+  ctx.fillStyle='rgba(0,242,255,0.8)';
+  ctx.font='bold 8px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('VISTA LATERAL IZQ.', ox, oy-6);
+
+  const grad=ctx.createLinearGradient(ox,oy,ox+bw,oy+bh);
+  grad.addColorStop(0,'#2d1a0b'); grad.addColorStop(1,'#180d05');
+  ctx.fillStyle=grad;
+  ctx.fillRect(ox,oy,bw,bh);
+
+  ctx.save(); ctx.beginPath(); ctx.rect(ox,oy,bw,bh); ctx.clip();
+  ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1.5;
+  for(let i=0;i<5;i++){
+    const vx=ox+(bw/4)*i+2;
+    ctx.beginPath(); ctx.moveTo(vx,oy); ctx.bezierCurveTo(vx+3,oy+bh*0.5,vx-2,oy+bh*0.6,vx+1,oy+bh); ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.strokeStyle='#22c55e'; ctx.lineWidth=2; ctx.strokeRect(ox,oy,bw,bh);
+  ctx.strokeStyle='rgba(34,197,94,0.35)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.strokeRect(ox+T*sc,oy+T*sc,bw-2*T*sc,bh-2*T*sc);
+  ctx.setLineDash([]);
+
+  // Ports laterales
+  PORTS.filter(p=>p.face==='left'||p.face==='right').forEach(p=>{
+    const faceX = p.face==='left'?ox:ox+bw;
+    if(p.type==='maze'){
+      const ph2=p.h*sc, pw2=p.w*sc;
+      ctx.fillStyle='rgba(255,204,0,0.25)'; ctx.fillRect(faceX-1,oy+(bh-ph2)/2,pw2,ph2);
+      ctx.strokeStyle='#ffcc00'; ctx.lineWidth=1.5; ctx.strokeRect(faceX-1,oy+(bh-ph2)/2,pw2,ph2);
+    }
+  });
+
+  drawCota(ctx, ox, oy+bh+10, ox+bw, oy+bh+10, `${D.toFixed(1)} cm`, '#22c55e');
+  drawCotaV(ctx, ox-10, oy, ox-10, oy+bh, `${H.toFixed(1)} cm`, '#22c55e');
+
+  ctx.fillStyle='rgba(34,197,94,0.6)'; ctx.font='bold 9px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('C', ox+bw/2, oy-8);
+}
+
+function drawVistaSuperior(ctx, ox, oy2, CW, CH) {
+  const {W,D,T} = BOX;
+  const oy=oy2+20;
+  const maxW=CW*0.42, maxH=160;
+  const sc=Math.min(maxW/W, maxH/D)*0.82;
+  const bw=W*sc, bh=D*sc;
+
+  ctx.fillStyle='rgba(0,242,255,0.8)';
+  ctx.font='bold 8px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('VISTA SUPERIOR (TAPA)', ox, oy-6);
+
+  const grad=ctx.createLinearGradient(ox,oy,ox+bw,oy+bh);
+  grad.addColorStop(0,'#251507'); grad.addColorStop(1,'#130a04');
+  ctx.fillStyle=grad;
+  ctx.fillRect(ox,oy,bw,bh);
+
+  ctx.save(); ctx.beginPath(); ctx.rect(ox,oy,bw,bh); ctx.clip();
+  for(let i=0;i<7;i++){
+    const vx=ox+(bw/6)*i;
+    ctx.strokeStyle='rgba(0,0,0,0.1)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(vx,oy); ctx.bezierCurveTo(vx+4,oy+bh*0.4,vx-2,oy+bh*0.7,vx+1,oy+bh); ctx.stroke();
+  }
+  ctx.restore();
+
+  ctx.strokeStyle='#c084fc'; ctx.lineWidth=2; ctx.strokeRect(ox,oy,bw,bh);
+  ctx.strokeStyle='rgba(192,132,252,0.35)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+  ctx.strokeRect(ox+T*sc,oy+T*sc,bw-2*T*sc,bh-2*T*sc);
+  ctx.setLineDash([]);
+
+  // Ports en tapa
+  PORTS.filter(p=>p.face==='top').forEach(p=>{
+    if(p.type==='maze'){
+      const pw2=p.w*sc, ph2=p.h*sc;
+      ctx.fillStyle='rgba(255,204,0,0.25)'; ctx.fillRect(ox+(bw-pw2)/2,oy+T*sc,pw2,ph2);
+      ctx.strokeStyle='#ffcc00'; ctx.lineWidth=1.5; ctx.strokeRect(ox+(bw-pw2)/2,oy+T*sc,pw2,ph2);
+    }
+  });
+
+  drawCota(ctx, ox, oy+bh+10, ox+bw, oy+bh+10, `${W.toFixed(1)} cm`, '#c084fc');
+  drawCotaV(ctx, ox-10, oy, ox-10, oy+bh, `${D.toFixed(1)} cm`, '#c084fc');
+
+  ctx.fillStyle='rgba(192,132,252,0.6)'; ctx.font='bold 9px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText('E', ox+bw/2, oy-8);
+}
+
+function drawLeyenda(ctx, ox, oy2, CW, CH) {
+  const oy=oy2+20;
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.font='bold 9px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('LEYENDA DE PIEZAS', ox, oy-6);
+
+  PIEZAS.forEach((p,i)=>{
+    const ly=oy+i*22;
+    ctx.fillStyle=p.color+'33';
+    roundRect(ctx,ox,ly-10,14,14,3); ctx.fill();
+    ctx.strokeStyle=p.color; ctx.lineWidth=1.5;
+    roundRect(ctx,ox,ly-10,14,14,3); ctx.stroke();
+    ctx.fillStyle=p.color; ctx.font='bold 8px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(p.id, ox+7, ly);
+    ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font='8px Segoe UI'; ctx.textAlign='left';
+    ctx.fillText(`${p.nombre}  ${p.ancho.toFixed(1)}×${p.alto.toFixed(1)} cm`, ox+20, ly);
+  });
+
+  // Info acústica
+  const {pVol,vNeto,hz}=calcSintonia();
+  const infoY=oy+PIEZAS.length*22+12;
+  ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(ox,infoY); ctx.lineTo(CW-20,infoY); ctx.stroke();
+
+  ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='bold 8px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('DATOS ACÚSTICOS', ox, infoY+14);
+  ctx.font='8px Segoe UI';
+  const lines=[
+    `Vol. bruto: ${(BOX.W*BOX.H*BOX.D/1000).toFixed(2)} L`,
+    `Vol. ports: ${pVol.toFixed(3)} L`,
+    `Vol. neto: ${vNeto.toFixed(2)} L`,
+    `Sintonía: ${hz||'—'} Hz`,
+    `${WOOFERS.length} woofer(s), ${PORTS.length} port(s)`,
+  ];
+  if(USE_ACUSTICA && ACUSTICA.fs) lines.push(`Fs=${ACUSTICA.fs}Hz Qts=${ACUSTICA.qts||'—'}`);
+  lines.forEach((l,i)=>{ ctx.fillStyle='rgba(200,223,240,0.85)'; ctx.fillText(l,ox,infoY+28+i*14); });
+}
+
+// ================================================
+//  FONDO MADERA
+// ================================================
+function drawWoodBackground(ctx, w, h) {
+  const grad=ctx.createLinearGradient(0,0,w,h);
+  grad.addColorStop(0,'#0d1a0a');
+  grad.addColorStop(0.5,'#0a1508');
+  grad.addColorStop(1,'#060f05');
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,w,h);
+
+  // Vetas finas
+  ctx.globalAlpha=0.04;
+  for(let i=0;i<30;i++){
+    const x=Math.random()*w;
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.bezierCurveTo(x+10,h*0.3, x-8,h*0.6, x+5,h);
+    ctx.strokeStyle=`rgb(${100+Math.random()*50},${60+Math.random()*30},${20+Math.random()*20})`;
+    ctx.lineWidth=1+Math.random()*2;
+    ctx.stroke();
+  }
+  ctx.globalAlpha=1;
+
+  // Borde decorativo
+  ctx.strokeStyle='rgba(0,242,255,0.15)';
+  ctx.lineWidth=2;
+  ctx.strokeRect(8,8,w-16,h-16);
+  ctx.strokeStyle='rgba(0,242,255,0.06)';
+  ctx.lineWidth=1;
+  ctx.strokeRect(12,12,w-24,h-24);
+}
+
+// ================================================
+//  HELPERS CANVAS
+// ================================================
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+function roundRectTop(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h); ctx.lineTo(x,y+h);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+// ================================================
+//  GENERACIÓN PDF
+// ================================================
+function setProgress(pct, label) {
+  document.getElementById('progressBar').style.display='block';
+  document.getElementById('progressLabel').style.display='block';
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('progressLabel').textContent=label;
+}
+function clearProgress() {
+  setTimeout(()=>{
+    document.getElementById('progressBar').style.display='none';
+    document.getElementById('progressLabel').style.display='none';
+    document.getElementById('progressFill').style.width='0%';
+  },1500);
+}
+
+async function canvasToPdfImg(canvas) {
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.src=canvas.toDataURL('image/png');
+  });
+}
+
+async function downloadDespiece() {
+  setProgress(20,'Preparando plano de despiece...');
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('l','mm','a4'); // landscape
+  const pw=doc.internal.pageSize.getWidth();
+  const ph=doc.internal.pageSize.getHeight();
+
+  setProgress(50,'Generando imagen...');
+  const canvas=document.getElementById('canvasDespiece');
+  const imgData=canvas.toDataURL('image/png');
+
+  setProgress(80,'Construyendo PDF...');
+  // Título en PDF
+  doc.setFillColor(3,10,18); doc.rect(0,0,pw,ph,'F');
+  doc.addImage(imgData,'PNG',5,5,pw-10,ph-10,'','FAST');
+
+  // Tabla de cortes al pie
+  addCutTable(doc, ph-55, pw);
+
+  setProgress(100,'Descargando...');
+  doc.save(`despiece_${(BOX.proyecto||'cajon').replace(/\s/g,'_')}.pdf`);
+  clearProgress();
+}
+
+async function downloadEnsamble() {
+  setProgress(20,'Preparando plano de ensamble...');
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('l','mm','a4');
+  const pw=doc.internal.pageSize.getWidth();
+  const ph=doc.internal.pageSize.getHeight();
+
+  setProgress(60,'Generando imagen...');
+  const canvas=document.getElementById('canvasEnsamble');
+  const imgData=canvas.toDataURL('image/png');
+
+  setProgress(80,'Construyendo PDF...');
+  doc.setFillColor(3,10,18); doc.rect(0,0,pw,ph,'F');
+  doc.addImage(imgData,'PNG',5,5,pw-10,ph-10,'','FAST');
+
+  setProgress(100,'Descargando...');
+  doc.save(`ensamble_${(BOX.proyecto||'cajon').replace(/\s/g,'_')}.pdf`);
+  clearProgress();
+}
+
+async function downloadCompleto() {
+  setProgress(10,'Iniciando PDF completo...');
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('l','mm','a4');
+  const pw=doc.internal.pageSize.getWidth();
+  const ph=doc.internal.pageSize.getHeight();
+
+  // ---- Página 1: Portada / Despiece ----
+  setProgress(25,'Página 1 — Despiece...');
+  const c1=document.getElementById('canvasDespiece');
+  const img1=c1.toDataURL('image/png');
+  doc.setFillColor(3,10,18); doc.rect(0,0,pw,ph,'F');
+  doc.addImage(img1,'PNG',5,5,pw-10,ph-14,'','FAST');
+  addCutTable(doc, ph-52, pw);
+
+  // ---- Página 2: Ensamble ----
+  setProgress(55,'Página 2 — Ensamble...');
+  doc.addPage();
+  doc.setFillColor(3,10,18); doc.rect(0,0,pw,ph,'F');
+  const c2=document.getElementById('canvasEnsamble');
+  const img2=c2.toDataURL('image/png');
+  doc.addImage(img2,'PNG',5,5,pw-10,ph-10,'','FAST');
+
+  // ---- Página 3: Especificaciones técnicas ----
+  setProgress(80,'Página 3 — Especificaciones...');
+  doc.addPage();
+  addSpecPage(doc, pw, ph);
+
+  setProgress(100,'Descargando...');
+  doc.save(`planos_completos_${(BOX.proyecto||'cajon').replace(/\s/g,'_')}.pdf`);
+  clearProgress();
+}
+
+// ---- Tabla de cortes en PDF ----
+function addCutTable(doc, startY, pw) {
+  const {T,tipo} = BOX;
+  const headers=['ID','PIEZA','ANCHO (cm)','ALTO (cm)','ESP. (cm)','CANT.','CARA'];
+  const rows = PIEZAS.map(p=>[p.id, p.nombre, p.ancho.toFixed(1), p.alto.toFixed(1), p.esp.toFixed(1), p.qty, FACE_LABELS[p.cara]||p.cara]);
+
+  doc.setFontSize(7);
+  doc.setTextColor(0,242,255);
+  doc.text('TABLA DE CORTES — Material: '+tipo+' | Espesor: '+T+'cm ('+T*10+'mm)', 10, startY+4);
+
+  const colWidths=[12,40,24,24,20,14,28];
+  const rowH=6;
+  let x=10, y=startY+8;
+
+  // Header
+  doc.setFillColor(0,30,40);
+  doc.rect(x,y,colWidths.reduce((a,b)=>a+b,0),rowH,'F');
+  doc.setTextColor(0,242,255); doc.setFontSize(6);
+  let cx=x;
+  headers.forEach((h,i)=>{ doc.text(h,cx+1,y+4); cx+=colWidths[i]; });
+  y+=rowH;
+
+  // Rows
+  rows.forEach((row,ri)=>{
+    doc.setFillColor(ri%2===0?10:15, ri%2===0?20:25, ri%2===0?28:35);
+    doc.rect(x,y,colWidths.reduce((a,b)=>a+b,0),rowH,'F');
+    doc.setTextColor(200,223,240); doc.setFontSize(6);
+    let cx2=x;
+    row.forEach((cell,ci)=>{ doc.text(String(cell),cx2+1,y+4); cx2+=colWidths[ci]; });
+    y+=rowH;
+  });
+
+  // Borde tabla
+  doc.setDrawColor(0,242,255); doc.setLineWidth(0.3);
+  doc.rect(x,startY+8,colWidths.reduce((a,b)=>a+b,0),(rows.length+1)*rowH);
+}
+
+// ---- Página de especificaciones ----
+function addSpecPage(doc, pw, ph) {
+  const {W,H,D,T,Wi,Hi,Di,tipo,proyecto}=BOX;
+  const {pVol,vNeto,hz}=calcSintonia();
+
+  // Fondo
+  doc.setFillColor(3,10,18); doc.rect(0,0,pw,ph,'F');
+
+  // Marco
+  doc.setDrawColor(0,242,255); doc.setLineWidth(0.5);
+  doc.rect(8,8,pw-16,ph-16);
+
+  // Título
+  doc.setFontSize(16); doc.setTextColor(0,242,255);
+  doc.text('ESPECIFICACIONES TÉCNICAS', pw/2, 22, {align:'center'});
+  doc.setFontSize(9); doc.setTextColor(106,143,170);
+  doc.text(proyecto||'AUDIO-TECH v7', pw/2, 30, {align:'center'});
+
+  // Línea
+  doc.setDrawColor(0,242,255); doc.setLineWidth(0.3);
+  doc.line(20,34,pw-20,34);
+
+  // Columna izquierda: Caja
+  const col1x=20, col2x=pw/2+10, rowH2=7;
+  let y=42;
+
+  const writeSection=(title,items,color=[0,242,255])=>{
+    doc.setFontSize(8); doc.setTextColor(...color);
+    doc.text(title, col1x, y); y+=2;
+    doc.setDrawColor(...color); doc.setLineWidth(0.2);
+    doc.line(col1x,y,pw/2-10,y); y+=4;
+    items.forEach(([label,val])=>{
+      doc.setFontSize(7);
+      doc.setTextColor(106,143,170); doc.text(label+':', col1x, y);
+      doc.setTextColor(200,223,240); doc.text(val, col1x+55, y);
+      y+=rowH2;
+    });
+    y+=4;
+  };
+
+  writeSection('📦 CAJA EXTERIOR',[
+    ['Dimensiones (L×A×P)',`${W} × ${H} × ${D} cm`],
+    ['Espesor madera',`${T} cm  (${T*10} mm)`],
+    ['Material',tipo],
+    ['Interior (L×A×P)',`${Wi.toFixed(1)} × ${Hi.toFixed(1)} × ${Di.toFixed(1)} cm`],
+    ['Volumen bruto',`${(W*H*D/1000).toFixed(3)} L`],
+  ]);
+
+  writeSection('🌀 ACÚSTICA',[
+    ['Volumen ports',`${pVol.toFixed(4)} L`],
+    ['Volumen neto',`${vNeto.toFixed(3)} L`],
+    ['Frecuencia de sintonía',`${hz||'—'} Hz`],
+    ['Nº de woofers',`${WOOFERS.length}`],
+    ['Nº de ports',`${PORTS.length}`],
+  ],[255,204,0]);
+
+  // Woofers
+  if(WOOFERS.length){
+    let yw=y;
+    doc.setFontSize(8); doc.setTextColor(0,242,255);
+    doc.text('🔊 WOOFERS', col1x, yw); yw+=2;
+    doc.setDrawColor(0,242,255); doc.setLineWidth(0.2);
+    doc.line(col1x,yw,pw/2-10,yw); yw+=4;
+    WOOFERS.forEach((w,i)=>{
+      doc.setFontSize(7);
+      doc.setTextColor(106,143,170); doc.text(`Woofer ${i+1}:`, col1x, yw);
+      doc.setTextColor(200,223,240);
+      doc.text(`${w.dia}" (${(w.dia*2.54).toFixed(1)} cm) | Cara: ${FACE_LABELS[w.face]||w.face} | Pos: ${w.posH}/${w.posV||'center'}`, col1x+30, yw);
+      yw+=rowH2;
+    });
+    y=yw+4;
+  }
+
+  // Ports
+  if(PORTS.length){
+    doc.setFontSize(8); doc.setTextColor(255,204,0);
+    doc.text('🌀 PORTS', col1x, y); y+=2;
+    doc.setDrawColor(255,204,0); doc.setLineWidth(0.2);
+    doc.line(col1x,y,pw/2-10,y); y+=4;
+    PORTS.forEach((p,i)=>{
+      doc.setFontSize(7);
+      doc.setTextColor(106,143,170); doc.text(`Port ${i+1}:`, col1x, y);
+      const info=p.type==='maze'?`Laberinto ${p.w}×${p.h}×${p.len}cm`:`Tubo ⌀${p.dia}" (${(p.dia*2.54).toFixed(1)}cm) Long.${p.len}cm`;
+      doc.setTextColor(200,223,240); doc.text(info+` | Cara: ${FACE_LABELS[p.face]||p.face}`, col1x+20, y);
+      y+=rowH2;
+    });
+  }
+
+  // Thiele-Small si aplica
+  if(USE_ACUSTICA && Object.keys(ACUSTICA).length){
+    let yt=42;
+    doc.setFontSize(8); doc.setTextColor(192,132,252);
+    doc.text('📊 PARÁMETROS THIELE-SMALL', col2x, yt); yt+=2;
+    doc.setDrawColor(192,132,252); doc.setLineWidth(0.2);
+    doc.line(col2x,yt,pw-20,yt); yt+=4;
+    const pnames={fs:'Fs (Hz)',qts:'Qts',qes:'Qes',qms:'Qms',vas:'Vas (L)',xmax:'Xmax (mm)',sd:'Sd (cm²)',bl:'BL (T·m)',re:'Re (Ω)',le:'Le (mH)',spl:'SPL (dB)',power:'Potencia (W)'};
+    Object.entries(ACUSTICA).forEach(([k,v])=>{
+      if(!v) return;
+      doc.setFontSize(7);
+      doc.setTextColor(106,143,170); doc.text((pnames[k]||k)+':', col2x, yt);
+      doc.setTextColor(200,223,240); doc.text(String(v), col2x+45, yt);
+      yt+=rowH2;
+    });
+  }
+
+  // Footer
+  doc.setDrawColor(0,242,255); doc.setLineWidth(0.2);
+  doc.line(20,ph-20,pw-20,ph-20);
+  doc.setFontSize(7); doc.setTextColor(106,143,170);
+  doc.text('Generado con AUDIO-TECH v7  •  Medidas en centímetros (cm)', pw/2, ph-12, {align:'center'});
+}
+
+// ================================================
+//  SECCIONES
+// ================================================
+function toggleSec(id){
+  const b=document.getElementById(id), c=document.getElementById('ch-'+id);
+  const o=b.classList.contains('open');
+  b.classList.toggle('open',!o);
+  if(c)c.classList.toggle('open',!o);
+}
+
+function goBack(){ window.location.href='parte2.html'; }
+</script>
+</body>
+</html>
